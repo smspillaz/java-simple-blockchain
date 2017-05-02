@@ -33,6 +33,7 @@ sourceSets {
         java {
             srcDir 'wallet'
             srcDir 'chain'
+            srcDir 'test'
         }
     }
 }
