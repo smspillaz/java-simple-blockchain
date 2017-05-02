@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -20,7 +21,7 @@ public class ChainMain {
             String response = "Transaction Response";
             exchange.sendResponseHeaders(200, response.length());
             OutputStream stream = exchange.getResponseBody();
-            stream.write(response.getBytes());
+            stream.write(response.getBytes(Charset.forName("UTF-8")));
             stream.close();
         }
     }

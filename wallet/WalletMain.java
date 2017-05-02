@@ -24,7 +24,7 @@ public class WalletMain {
         connection.setRequestProperty("Accept-Charset", "UTF-8");
         InputStream response = connection.getInputStream();
 
-        Scanner s = new Scanner(response).useDelimiter("\\A");
+        Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
         String result = s.hasNext() ? s.next() : "";
 
         System.out.println(result);
