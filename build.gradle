@@ -11,6 +11,9 @@ repositories {
   }
 }
 
+dependencies {
+    compile 'javax.json:javax.json-api:1.0'
+}
 /* Because FindBugs doesn't print to the stderr ... */
 task checkFindBugsReport << {
    def xmlReport = findbugsMain.reports.xml
@@ -39,3 +42,4 @@ sourceSets {
 }
 
 findbugsMain.finalizedBy checkFindBugsReport
+
