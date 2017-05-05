@@ -44,9 +44,6 @@ public class ChainMain {
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
         keyManagerFactory.init(keyStore, password);
 
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-        trustManagerFactory.init(keyStore);
-
         context.init(keyManagerFactory.getKeyManagers(),
                      null,
                      null);
