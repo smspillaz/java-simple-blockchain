@@ -63,10 +63,6 @@ public class WalletMain extends Application {
                 + message +"\n" + console.getText());
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
-
     @Override
     public void start(Stage applicationStart) {
         // Add Start Window Components
@@ -139,7 +135,7 @@ public class WalletMain extends Application {
                     transactionWindow();
                     applicationStart.hide();
                 } catch (Exception e) {
-                    console("Error: " + e);
+                    console(e.toString());
                 }
             }
         });
@@ -179,5 +175,9 @@ public class WalletMain extends Application {
         stage.setTitle("Connected Window");
         stage.setScene(new Scene(root, 450, 450));
         stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
