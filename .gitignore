@@ -4,3 +4,4 @@
 *.ipr
 .idea
 .gradle
+keys/*
