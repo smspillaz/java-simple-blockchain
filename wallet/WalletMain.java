@@ -34,43 +34,37 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 
 public class WalletMain extends Application {
+    // Global Console Output Object
+    static TextArea console;
 
+    private static SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
+                                                               char[] password) throws CertificateException,
+            NoSuchAlgorithmException,
+            KeyStoreException,
+            IOException,
+            KeyManagementException,
+            UnrecoverableKeyException {
+        SSLContext context = SSLContext.getInstance("TLS");
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(keyStoreStream, password);
 
-    public static void main(String[] args) throws IOException,
-                                                  CertificateException,
-                                                  NoSuchAlgorithmException,
-                                                  KeyStoreException,
-                                                  KeyManagementException,
-                                                  UnrecoverableKeyException {
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+        trustManagerFactory.init(keyStore);
 
+        context.init(null,
+                trustManagerFactory.getTrustManagers(),
+                null);
 
+        return context;
+    }
+
+    public static void console(String message) {
+        console.setText("[" + System.currentTimeMillis() + "] "
+                + message +"\n" + console.getText());
+    }
+
+    public static void main(String[] args) {
         launch(args);
-
-
-
-        if (args.length < 2) {
-            usage();
-            System.exit(1);
-        }
-        String serverHost = args[0];
-        String serverCertificateKeyStore = args[1];
-
-        // Send a HTTPS request to server
-        SSLContext context = createSSLContextForKeyFileStream(new FileInputStream(serverCertificateKeyStore),
-                                                              System.getenv("KEYSTORE_PASSWORD")
-                                                                    .toCharArray());
-
-        HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
-
-        URL url = new URL("https://" + serverHost + ":3002/transaction");
-        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-        connection.setRequestProperty("Accept-Charset", "UTF-8");
-        InputStream response = connection.getInputStream();
-
-        Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
-        String result = s.hasNext() ? s.next() : "";
-
-        System.out.println(result);
     }
 
     @Override
@@ -81,7 +75,8 @@ public class WalletMain extends Application {
         Label keystorePasswordLabel = new Label("Keystore Password");
         TextField hostname = new TextField();
         TextField keystoreFile = new TextField();
-        TextArea console = new TextArea();
+        console = new TextArea();
+        console.setWrapText(true);
         console.setEditable(false);
         Button keystore = new Button();
         Button connect = new Button();
@@ -95,6 +90,7 @@ public class WalletMain extends Application {
         connect.setText("Connect");
         hostname.setText("http://localhost/");
         fileChooser.setTitle("Open Client Keystore File");
+        console("Welcome. Enter your details to connect to the blockchain server.");
 
         // Define Event Actions
         keystore.setOnAction(new EventHandler<ActionEvent>() {
@@ -110,14 +106,41 @@ public class WalletMain extends Application {
         connect.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                transactionWindow();
-                File selectedFile = fileChooser.showOpenDialog(applicationStart);
-                if (selectedFile != null) {
-                    // transactionWindow();
-                    System.out.println(selectedFile.getAbsolutePath());
-                    // textField.setText(selectedFile.getAbsolutePath());
+                try {
+                    console("Attempting to connect...");
+
+                    String host = hostname.getText().trim();
+                    String keystore = keystoreFile.getText().trim();
+                    String password = keystorePassword.getText().trim();
+
+                    if (host.isEmpty() || keystore.isEmpty() || password.isEmpty()) {
+                        console("Error: A required parameter is missing. Please ensure you have set " +
+                        "the server host, provided a certificate key and password.");
+                        return;
+                    }
+
+                    // Send a test HTTPS request to server to see if we can connect
+                    SSLContext context = createSSLContextForKeyFileStream(new FileInputStream(keystore),
+                            password.toCharArray());
+
+                    HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+
+                    URL url = new URL("https://" + hostname.getText() + ":3002/transaction");
+                    HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+                    connection.setRequestProperty("Accept-Charset", "UTF-8");
+                    InputStream response = connection.getInputStream();
+
+                    Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
+                    String result = s.hasNext() ? s.next() : "";
+
+                    console(result);
+                    console("Connected.");
+
+                    transactionWindow();
+                    applicationStart.hide();
+                } catch (Exception e) {
+                    console("Error: " + e);
                 }
-                applicationStart.hide();
             }
         });
 
@@ -153,33 +176,8 @@ public class WalletMain extends Application {
         StackPane root = new StackPane();
 
         Stage stage = new Stage();
-        stage.setTitle("My New Stage Title");
+        stage.setTitle("Connected Window");
         stage.setScene(new Scene(root, 450, 450));
         stage.show();
-    }
-
-    public static void usage() {
-        System.err.println("WalletMain SERVER_HOST SERVER_JKS_KEYSTORE");
-    }
-
-    private static SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
-                                                               char[] password) throws CertificateException,
-            NoSuchAlgorithmException,
-            KeyStoreException,
-            IOException,
-            KeyManagementException,
-            UnrecoverableKeyException {
-        SSLContext context = SSLContext.getInstance("TLS");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(keyStoreStream, password);
-
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-        trustManagerFactory.init(keyStore);
-
-        context.init(null,
-                trustManagerFactory.getTrustManagers(),
-                null);
-
-        return context;
     }
 }
