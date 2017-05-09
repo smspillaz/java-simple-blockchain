@@ -21,8 +21,11 @@ import java.security.UnrecoverableKeyException;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
@@ -72,20 +75,39 @@ public class WalletMain extends Application {
 
     @Override
     public void start(Stage applicationStart) {
-
-        TextField textField = new TextField();
-
-        PasswordField passwordField = new PasswordField();
-        TextArea textArea = new TextArea();
-
+        // Add Start Window Components
+        Label hostnameLabel = new Label("Hostname");
+        Label keystoreFileLabel = new Label("Keystore File");
+        Label keystorePasswordLabel = new Label("Keystore Password");
+        TextField hostname = new TextField();
+        TextField keystoreFile = new TextField();
+        TextArea console = new TextArea();
+        console.setEditable(false);
+        Button keystore = new Button();
+        Button connect = new Button();
+        connect.setMaxSize(320, 140);
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Client Pem File");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Text Files", "*.jks"));
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Keystore File", "*.jks"));
+        PasswordField keystorePassword = new PasswordField();
 
-        Button btn = new Button();
-        btn.setText("Launch Transaction Window");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
+        // Set Field Labels
+        keystore.setText("...");
+        connect.setText("Connect");
+        hostname.setText("http://localhost/");
+        fileChooser.setTitle("Open Client Keystore File");
+
+        // Define Event Actions
+        keystore.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                File selectedFile = fileChooser.showOpenDialog(applicationStart);
+                if (selectedFile != null) {
+                    keystoreFile.setText(selectedFile.getAbsolutePath());
+                }
+            }
+        });
+
+        connect.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 transactionWindow();
@@ -93,23 +115,36 @@ public class WalletMain extends Application {
                 if (selectedFile != null) {
                     // transactionWindow();
                     System.out.println(selectedFile.getAbsolutePath());
-                    textField.setText(selectedFile.getAbsolutePath());
+                    // textField.setText(selectedFile.getAbsolutePath());
                 }
                 applicationStart.hide();
             }
         });
 
+        // Arrange the window elements
+        GridPane window = new GridPane();
 
+        window.add(hostnameLabel, 0, 0, 1, 1);
+        window.add(hostname, 1, 0, 1, 1);
+        window.add(keystoreFileLabel, 0, 1, 1, 1);
+        window.add(keystoreFile, 1, 1, 1, 1);
+        window.add(keystore, 2, 1, 1, 1);
+        window.add(keystorePasswordLabel, 0, 2, 1, 1);
+        window.add(keystorePassword, 1, 2, 1, 1);
+        window.add(connect, 0, 3, 3, 1);
+        window.add(console, 0, 4, 3, 1);
 
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
-        root.getChildren().add(textField);
-        root.getChildren().add(passwordField);
-
+        GridPane.setMargin(hostname, new Insets(0, 0, 5, 5));
+        GridPane.setMargin(keystoreFile, new Insets(0, 0, 5, 5));
+        GridPane.setMargin(keystore, new Insets(0, 0, 5, 5));
+        GridPane.setMargin(keystorePassword, new Insets(0, 0, 5, 5));
+        GridPane.setMargin(connect, new Insets(5, 0, 5, 0));
+        GridPane.setMargin(console, new Insets(5, 0, 5, 0));
+        window.setPadding(new Insets(5, 5, 5, 5));
 
         // Launch Welcome Window
-        applicationStart.setTitle("Welcome to Chris Coin");
-        applicationStart.setScene(new Scene(root, 300, 250));
+        applicationStart.setTitle("ChrisCoin");
+        applicationStart.setScene(new Scene(window, 320, 260));
         applicationStart.setResizable(false);
         applicationStart.show();
     }
