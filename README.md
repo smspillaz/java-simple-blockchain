@@ -16,7 +16,7 @@ Instead, you will need to use the provided `genkeys.py` script. This will genera
 
 To generate keys, you can use something like
 
-> python genkeys.py HOSTNAME KEYSTORE_PASSWORD
+> python genkeys.py KEYSTORE_PASSWORD HOSTNAME
 
 # Running
 
@@ -24,5 +24,5 @@ Built classes are saved in `build/classes/main` after a successful run of `gradl
 
 If you want to test that SSL validation works, you can try poking the server with curl - `curl http://localhost:3002/transaction`. It should error out with a certificate validation error. Running curl again with `curl --cacert path/to/client.pem https://localhost:3002/transaction` should print `Transaction Response`.
 
-The `client` takes two arguments, the hostname of the server it will be connecting to and a path to a client keystore. It also requires `KEYSTORE_PASSWORD` to be set in the environment, because Java insists on all keystores being password protected. If you generated keys using the `genkeys.py` script, the password will be the same for both (though note that the client keystore only contains the server's public certificate). So, as an example, if you were running it from the build directory, you could run it like this: `KEYSTORE_PASSWORD=your-keystore-password java WalletMain localhost ../../../keys/client.jks`
+To run the `client` simply start WalletMain. A window will display asking for hostname of the server it will be connecting to and a path to a client keystore. You will also be required to enter the `KEYSTORE_PASSWORD` you generated. If you generated keys using the `genkeys.py` script, the password will be the same for both (though note that the client keystore only contains the server's public certificate).
 
