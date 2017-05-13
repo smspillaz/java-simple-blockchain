@@ -218,13 +218,13 @@ public class WalletMain extends Application {
 
         menuExit.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                exit(1);
+                Platform.exit();
             }
         });
 
         transactionWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
             public void handle(WindowEvent e) {
-                exit(1);
+                Platform.exit();
             }
         });
     }
