@@ -79,23 +79,31 @@ public class ChainMain {
             }
         });
 
-        server.createContext("/transaction", new ChainHTTPHandler());
+        server.createContext("/transaction", new HttpHandler () {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                String response = "Transaction Response";
+                exchange.sendResponseHeaders(200, response.length());
+                OutputStream stream = exchange.getResponseBody();
+                stream.write(response.getBytes(Charset.forName("UTF-8")));
+                stream.close();
+            }
+        });
+        server.createContext("/download_blockchain", new HttpHandler () {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                String response = "Transaction Response";
+                exchange.sendResponseHeaders(200, response.length());
+                OutputStream stream = exchange.getResponseBody();
+                stream.write(response.getBytes(Charset.forName("UTF-8")));
+                stream.close();
+            }
+        });
         System.out.println("ChainMain server running, post requests to /transaction");
 
         /* Main loop - the server can only be stopped here if we
          * call server.stop() elsewhere in the program */
         server.start();
-    }
-
-    public static class ChainHTTPHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String response = "Transaction Response";
-            exchange.sendResponseHeaders(200, response.length());
-            OutputStream stream = exchange.getResponseBody();
-            stream.write(response.getBytes(Charset.forName("UTF-8")));
-            stream.close();
-        }
     }
 }
 
