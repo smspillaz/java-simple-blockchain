@@ -1,6 +1,8 @@
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.xml.bind.DatatypeConverter;
+
 public class Block {
     private Transaction transaction;
     public byte[] hash;
@@ -28,5 +30,9 @@ public class Block {
      * gets computed over time instead of a public field */
     Transaction getTransaction() {
         return transaction;
+    }
+
+    public String toString() {
+        return DatatypeConverter.printHexBinary(this.hash) + ": " + this.transaction;
     }
 }
