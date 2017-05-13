@@ -1,5 +1,6 @@
 import java.io.File;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -133,13 +134,13 @@ public class WalletMain extends Application {
 
         menuExit.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                exit(1);
+                Platform.exit();
             }
         });
 
         launcherWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
             public void handle(WindowEvent e) {
-                exit(1);
+                Platform.exit();
             }
         });
     }
