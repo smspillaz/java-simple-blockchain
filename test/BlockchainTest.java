@@ -28,7 +28,7 @@ public class BlockchainTest {
     Blockchain chain = new Blockchain();
     chain.appendTransaction(new Transaction(0, 1, 25, 0));
 
-    final String execeptedTransactionHash = "95BE1F104D6A8C778327982CBF475FC9869BACB63A2FCBF1E54491B9FDD60E97";
+    final String execeptedTransactionHash = "8D8596DC7C682499ADAF59A2463DFCDD760F3AAD980BFD22FDD8742B3FCB393B";
 
     assertThat(DatatypeConverter.printHexBinary(chain.tipHash()),
                equalTo(execeptedTransactionHash));
