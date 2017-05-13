@@ -70,7 +70,8 @@ public class Ledger {
 
                 /* On non-genesis blocks we need to perform transaction
                  * validation to ensure that nobody spends money that they
-                 * don't have */
+                 * don't have. On the genesis block however, we don't deduct
+                 * money, only add it */
                 if (index > 0) {
                     int srcCoins = ownership.get(transaction.src);
                     if (ownership.get(transaction.src) < transaction.amount) {
@@ -84,7 +85,8 @@ public class Ledger {
                 /* Transaction would have been successful. Allow this transaction
                  * on the chain and update our view */
                 ownership.put(transaction.src,
-                              ownership.get(transaction.src) - transaction.amount);
+                              Math.max(ownership.get(transaction.src) -
+                                       transaction.amount, 0));
                 ownership.put(transaction.dst,
                               ownership.get(transaction.dst) + transaction.amount);
 
