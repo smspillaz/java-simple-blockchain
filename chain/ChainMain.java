@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,7 +58,8 @@ public class ChainMain {
                                                   KeyStoreException,
                                                   KeyManagementException,
                                                   CertificateException,
-                                                  UnrecoverableKeyException {
+                                                  UnrecoverableKeyException,
+                                                  Blockchain.WalkFailedException {
         HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
         SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(args[0]),
                                                                         System.getenv("KEYSTORE_PASSWORD")
@@ -79,6 +82,8 @@ public class ChainMain {
             }
         });
 
+        Blockchain chain = new Blockchain();
+
         server.createContext("/transaction", new HttpHandler () {
             @Override
             public void handle(HttpExchange exchange) throws IOException {
@@ -92,14 +97,17 @@ public class ChainMain {
         server.createContext("/download_blockchain", new HttpHandler () {
             @Override
             public void handle(HttpExchange exchange) throws IOException {
-                String response = "Transaction Response";
+                String response = chain.serialise();
                 exchange.sendResponseHeaders(200, response.length());
+                exchange.getResponseHeaders().put("Content-Type",
+                                                  Arrays.asList(new String[] { "application/json" }));
                 OutputStream stream = exchange.getResponseBody();
                 stream.write(response.getBytes(Charset.forName("UTF-8")));
                 stream.close();
             }
         });
-        System.out.println("ChainMain server running, post requests to /transaction");
+        System.out.println("ChainMain server running, post requests to /transaction\n" +
+                           "download blockchain from /download_blockchain");
 
         /* Main loop - the server can only be stopped here if we
          * call server.stop() elsewhere in the program */
