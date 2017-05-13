@@ -58,6 +58,16 @@ public class Ledger {
                 Ledger.maybeInitialiseMapEntry(ownership, transaction.src, 0);
                 Ledger.maybeInitialiseMapEntry(ownership, transaction.dst, 0);
 
+                int srcCoins = ownership.get(transaction.src);
+
+                /* Reverse transactions are never allowed */
+                if (transaction.amount < 0) {
+                    throw new TransactionValidationFailedException(transaction.src,
+                                                                   srcCoins,
+                                                                   transaction.dst,
+                                                                   transaction.amount);
+                }
+
                 /* On non-genesis blocks we need to perform transaction
                  * validation to ensure that nobody spends money that they
                  * don't have */
