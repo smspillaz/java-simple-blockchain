@@ -17,6 +17,12 @@ public class Console implements Logger {
         console = new TextArea();
         console.setWrapText(true);
         console.setEditable(false);
+        console.setStyle("-fx-focus-color: transparent;" +
+                "-fx-faint-focus-color: transparent; " +
+                "-fx-border-style: solid; " +
+                "-fx-border-width: 1px; " +
+                "-fx-indent: 0px; " +
+                "-fx-border-color: #CCC;");
 
         consolePane.add(console, 0, 0, 4, 5);
 
