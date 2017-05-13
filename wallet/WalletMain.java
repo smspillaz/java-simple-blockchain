@@ -39,8 +39,10 @@ public class WalletMain extends Application {
         Label hostnameLabel = new Label("Hostname");
         Label keystoreFileLabel = new Label("Keystore File");
         Label keystorePasswordLabel = new Label("Keystore Password");
+        Label publicKeyLabel = new Label("Public Key");
         TextField hostname = new TextField();
         TextField keystoreFile = new TextField();
+        TextField publicKey = new TextField();
         Button keystore = new Button();
         Button connect = new Button();
         FileChooser fileChooser = new FileChooser();
@@ -60,7 +62,7 @@ public class WalletMain extends Application {
         keystore.setText("...");
         connect.setText("Connect");
         fileChooser.setTitle("Open Client Keystore File");
-        connect.setMaxSize(320, 140);
+        connect.setMaxSize(320, 160);
 
         console.write("Welcome to ChrisCoin. Enter your details to connect to the BlockChain server.");
 
@@ -75,22 +77,26 @@ public class WalletMain extends Application {
         startScreen.add(keystore, 2, 2, 1, 1);
         startScreen.add(keystorePasswordLabel, 0, 3, 1, 1);
         startScreen.add(keystorePassword, 1, 3, 1, 1);
-        startScreen.add(connect, 0, 4, 3, 1);
+        startScreen.add(publicKeyLabel, 0, 4, 1, 1);
+        startScreen.add(publicKey, 1, 4, 1, 1);
+        startScreen.add(connect, 0, 5, 3, 1);
 
         GridPane.setMargin(hostnameLabel, new Insets(0, 0, 0, 5));
         GridPane.setMargin(keystoreFileLabel, new Insets(0, 0, 0, 5));
         GridPane.setMargin(keystorePasswordLabel, new Insets(0, 0, 0, 5));
+        GridPane.setMargin(publicKeyLabel, new Insets(0, 0, 0, 5));
         GridPane.setMargin(menuBar, new Insets(0, 0, 5, 0));
         GridPane.setMargin(hostname, new Insets(0, 0, 5, 5));
         GridPane.setMargin(keystoreFile, new Insets(0, 0, 5, 5));
         GridPane.setMargin(keystore, new Insets(0, 5, 5, 5));
         GridPane.setMargin(keystorePassword, new Insets(0, 0, 5, 5));
+        GridPane.setMargin(publicKey, new Insets(0, 0, 5, 5));
         GridPane.setMargin(connect, new Insets(5, 5, 5, 5));
 
         // Launcher window properties
         launcherWindow = new Stage();
         launcherWindow.setTitle("ChrisCoin");
-        launcherWindow.setScene(new Scene(startScreen, 320, 168));
+        launcherWindow.setScene(new Scene(startScreen, 320, 200));
         launcherWindow.setResizable(false);
         launcherWindow.show();
 
