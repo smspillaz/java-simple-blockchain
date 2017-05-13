@@ -40,11 +40,18 @@ public class Ledger {
         }
     } 
 
-    public Ledger(Blockchain chain) throws Blockchain.WalkFailedException {
-        this.chain = chain;
-        ownership = new HashMap<Integer, Integer>();
+    public interface TransactionObserver {
+        void consume(Transaction transaction);
+    }
 
-        this.chain.walk(new Blockchain.TransactionEnumerator() {
+    /* Build up a view the transaction history for each public key and
+     * address, optionally calling out to a TransactionObserver for each
+     * transaction */
+    private static Map<Integer, Integer> walkTransactions(Blockchain chain,
+                                                          TransactionObserver observer) throws Blockchain.WalkFailedException {
+        Map<Integer, Integer> ownership = new HashMap<Integer, Integer>();
+
+        chain.walk(new Blockchain.TransactionEnumerator() {
             public void consume(int index, Transaction transaction) throws Blockchain.WalkFailedException {
                 /* If the map doesn't contain an address, then add it with
                  * a balance of zero chriscoins */
@@ -70,8 +77,28 @@ public class Ledger {
                               ownership.get(transaction.src) - transaction.amount);
                 ownership.put(transaction.dst,
                               ownership.get(transaction.dst) + transaction.amount);
+
+                if (observer != null) {
+                    observer.consume(transaction);
+                }
             }
         });
+
+        return ownership;
+    }
+
+    /* Construct a new ledger from a Blockchain. */
+    public Ledger(Blockchain chain) throws Blockchain.WalkFailedException {
+        this.chain = chain;
+        this.ownership = Ledger.walkTransactions(this.chain, null);
+    }
+
+    /* Construct a new ledger from a Blockchain, but also observe
+     * transactions as they are validated */
+    public Ledger(Blockchain chain,
+                  TransactionObserver observer) throws Blockchain.WalkFailedException {
+        this.chain = chain;
+        this.ownership = Ledger.walkTransactions(this.chain, observer);
     }
 
     /* Attempt to append a transaction to the underlying blockchain. If this
