@@ -60,7 +60,7 @@ public class WalletMain extends Application {
         file.setStyle("-fx-mark-color: transparent; -fx-focused-mark-color: transparent");
 
         // Set Field Labels
-        hostname.setText("https://localhost:3002/transaction");
+        hostname.setText("localhost");
         keystore.setText("...");
         connect.setText("Connect");
         fileChooser.setTitle("Open Client Keystore File");
@@ -112,8 +112,44 @@ public class WalletMain extends Application {
             }
         });
 
+        class AccumulatingBalanceTransactionObserver implements Ledger.TransactionObserver {
+            public int balance;
+            Logger console;
+
+            AccumulatingBalanceTransactionObserver(Logger console) {
+                this.console = console;
+                this.balance = 0;
+            }
+
+            @Override
+            public void consume(Transaction transaction) {
+                /* Hard coding for the win */
+                if (transaction.dst == 0) {
+                    balance += transaction.amount;
+                    console.write(transaction.toString());
+                } else if (transaction.src == 0) {
+                    balance -= transaction.amount;
+                    console.write(transaction.toString());
+                }
+            }
+        }
+
         connect.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
+                String chainStr = walletOrchestrator.fetchBlockchain(hostname.getText().trim(),
+                                                                     keystoreFile.getText().trim(),
+                                                                     keystorePassword.getText().trim());
+
+                try {
+                    Blockchain chain = Blockchain.deserialise(chainStr);
+                    AccumulatingBalanceTransactionObserver observer = new AccumulatingBalanceTransactionObserver(console);
+                    new Ledger(chain, observer);
+
+                    console.write("Balance is " + observer.balance);
+                } catch (Blockchain.WalkFailedException err) {
+                    console.write(err.toString());
+                }
+
                 walletOrchestrator.connect(hostname.getText().trim(),
                                            keystoreFile.getText().trim(),
                                            keystorePassword.getText().trim());
