@@ -73,7 +73,6 @@ public class Ledger {
                  * don't have. On the genesis block however, we don't deduct
                  * money, only add it */
                 if (index > 0) {
-                    int srcCoins = ownership.get(transaction.src);
                     if (ownership.get(transaction.src) < transaction.amount) {
                         throw new TransactionValidationFailedException(transaction.src,
                                                                        srcCoins,
