@@ -191,7 +191,7 @@ public class WalletMain extends Application {
         GridPane.setMargin(newTransaction, new Insets(5, 5, 0, 5));
 
         // Transaction Window Properties
-        Stage transactionWindow = new Stage();
+        transactionWindow = new Stage();
         transactionWindow.setTitle("My Transactions");
         transactionWindow.setScene(new Scene(transactionScreen, 400, 455));
         transactionWindow.setResizable(false);
@@ -257,7 +257,7 @@ public class WalletMain extends Application {
         GridPane.setMargin(makeTransaction, new Insets(5, 0, 5, 5));
 
         // Transaction Window Properties
-        Stage newTransactionWindow = new Stage();
+        newTransactionWindow = new Stage();
         newTransactionWindow.setTitle("New Transaction");
         newTransactionWindow.setScene(new Scene(newTransactionScreen, 280, 110));
         newTransactionWindow.setResizable(false);
