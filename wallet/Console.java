@@ -5,13 +5,13 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-public class Console {
+public class Console implements Logger {
 
-    static TextArea console;
-    static Stage consoleWindow;
+    private TextArea console;
+    private Stage consoleWindow;
 
     // Launch the JavaFX Console Window
-    public static void launch() {
+    public Console() {
         GridPane consolePane = new GridPane();
 
         console = new TextArea();
@@ -31,21 +31,25 @@ public class Console {
         show();
     }
 
+    public void write(String msg) {
+        console.appendText("[" + System.currentTimeMillis() + "] " + msg + "\n");
+    }
+
     // Show Console
-    public static void show() {
+    public void show() {
         consoleWindow.show();
     }
 
-    // Hide Console
-    public static void hide() {
-        consoleWindow.hide();
+    public void toggle() {
+        if (consoleWindow.isShowing() == false) {
+            this.show();
+        } else {
+            this.hide();
+        }
     }
 
-    // Write to Console
-    public static void write(String message) {
-        // Print to GUI Console
-        console.appendText("[" + System.currentTimeMillis() + "] " + message + "\n");
-        // Print to Java Console
-        System.out.println(message);
+    // Hide Console
+    public void hide() {
+        consoleWindow.hide();
     }
 }

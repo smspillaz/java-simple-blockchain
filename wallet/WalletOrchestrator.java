@@ -10,8 +10,13 @@ import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 public class WalletOrchestrator {
+    private Logger logger;
 
-    private static SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
+    public WalletOrchestrator(Logger logger) {
+        this.logger = logger;
+    }
+
+    private SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
                                                                char[] password) throws CertificateException,
             NoSuchAlgorithmException,
             KeyStoreException,
@@ -32,12 +37,12 @@ public class WalletOrchestrator {
         return context;
     }
 
-    public static void connect(String host, String keystore, String password) {
+    public void connect(String host, String keystore, String password) {
         try {
-            Console.write("Attempting to connect...");
+            logger.write("Attempting to connect...");
 
             if (host.isEmpty() || keystore.isEmpty() || password.isEmpty()) {
-                Console.write("Error: A required parameter is missing. Please ensure you have set " +
+                logger.write( "Error: A required parameter is missing. Please ensure you have set " +
                         "the server host, provided a certificate key and password.");
                 return;
             }
@@ -56,10 +61,10 @@ public class WalletOrchestrator {
             Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
             String result = s.hasNext() ? s.next() : "";
 
-            Console.write(result);
+            logger.write( result);
 
         } catch (Exception e) {
-            Console.write(e.toString());
+            logger.write(e.toString());
         }
     }
 

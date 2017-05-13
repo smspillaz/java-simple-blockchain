@@ -5,10 +5,16 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 
-    public class WalletCLI {
-        public static void usage() {
-            System.err.println("WalletMain SERVER_HOST SERVER_JKS_KEYSTORE");
+public class WalletCLI {
+    private static class CLILogger implements Logger {
+        public void write(String msg) {
+            System.out.println(msg);
         }
+    }
+
+    public static void usage(Logger logger) {
+        logger.write("WalletMain SERVER_HOST SERVER_JKS_KEYSTORE");
+    }
 
     public static void main(String[] args) throws IOException,
             CertificateException,
@@ -16,13 +22,18 @@ import java.security.UnrecoverableKeyException;
             KeyStoreException,
             KeyManagementException,
             UnrecoverableKeyException {
+
+        Logger logger = new WalletCLI.CLILogger();
+
+        WalletOrchestrator walletOrchestrator = new WalletOrchestrator(logger);
+
         if (args.length < 2) {
-            usage();
+            usage(logger);
             System.exit(1);
         }
         String serverHost = args[0];
         String serverCertificateKeyStore = args[1];
 
-        WalletOrchestrator.connect(serverHost, serverCertificateKeyStore, System.getenv("KEYSTORE_PASSWORD"));
+        walletOrchestrator.connect(serverHost, serverCertificateKeyStore, System.getenv("KEYSTORE_PASSWORD"));
     }
 }

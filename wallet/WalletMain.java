@@ -15,16 +15,20 @@ import javafx.stage.WindowEvent;
 import static java.lang.System.exit;
 
 public class WalletMain extends Application {
-    static Stage launcherWindow;
-    static Stage transactionWindow;
+    WalletOrchestrator walletOrchestrator;
+    Stage launcherWindow;
+    Stage transactionWindow;
+    Console console;
 
     public static void main(String[] args) {
         launch(args);
     }
 
     public void start(Stage applicationStart) {
-        // Launch Console Window
-        Console.launch();
+        console = new Console();
+
+        // Set up the Wallet Orchestrator Class
+        walletOrchestrator = new WalletOrchestrator(console);
 
         // Launch Main menu
         launcherWindow();
@@ -58,7 +62,7 @@ public class WalletMain extends Application {
         fileChooser.setTitle("Open Client Keystore File");
         connect.setMaxSize(320, 140);
 
-        Console.write("Welcome to ChrisCoin. Enter your details to connect to the BlockChain server.");
+        console.write("Welcome to ChrisCoin. Enter your details to connect to the BlockChain server.");
 
         // Arrange the window elements
         GridPane startScreen = new GridPane();
@@ -102,7 +106,7 @@ public class WalletMain extends Application {
 
         connect.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                WalletOrchestrator.connect(hostname.getText().trim(), keystoreFile.getText().trim(), keystorePassword.getText().trim());
+                walletOrchestrator.connect(hostname.getText().trim(), keystoreFile.getText().trim(), keystorePassword.getText().trim());
             }
         });
 
@@ -117,11 +121,7 @@ public class WalletMain extends Application {
 
         menuConsole.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                if (Console.consoleWindow.isShowing() == false) {
-                    Console.show();
-                } else {
-                    Console.hide();
-                }
+                console.toggle();
             }
         });
 
