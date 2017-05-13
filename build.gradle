@@ -15,8 +15,24 @@ dependencies {
     compile 'javax.json:javax.json-api:1.0'
 }
 /* Because FindBugs doesn't print to the stderr ... */
-task checkFindBugsReport << {
+task checkFindBugsReportMain << {
    def xmlReport = findbugsMain.reports.xml
+   def slurped = new XmlSlurper().parse(xmlReport.destination)
+   def report = ""
+   slurped['BugInstance'].eachWithIndex { bug, index ->
+       report += "${index + 1}. Found bug risk ${bug.@'type'} of category ${bug.@'category'} "
+       report += "in the following places"
+       bug['SourceLine'].each { place ->
+           report += "\n       ${place.@'classname'} at lines ${place.@'start'}:${place.@'end'}"
+       }
+   }
+   if (report.length() > 1) {
+       logger.error "[FINDBUGS]\n ${report}"
+   }
+}
+
+task checkFindBugsReportTest << {
+   def xmlReport = findbugsTest.reports.xml
    def slurped = new XmlSlurper().parse(xmlReport.destination)
    def report = ""
    slurped['BugInstance'].eachWithIndex { bug, index ->
@@ -61,5 +77,5 @@ test {
    }
 }
 
-findbugsMain.finalizedBy checkFindBugsReport
-
+findbugsMain.finalizedBy checkFindBugsReportMain
+findbugsTest.finalizedBy checkFindBugsReportTest
