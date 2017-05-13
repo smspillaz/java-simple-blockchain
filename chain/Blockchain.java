@@ -4,6 +4,10 @@ import java.security.NoSuchAlgorithmException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+
+import io.gsonfire.GsonFireBuilder;
+import io.gsonfire.PostProcessor;
 
 /**
  * The Blockchain class just keeps a list of blocks and transactions.
@@ -43,6 +47,9 @@ public class Blockchain {
         }
     }
 
+    private void validate() {
+    }
+
     /**
      * Appends a new transaction to the chain by creating a new block for it
      * with a reference to the child-most block as its parent. Note that
@@ -69,6 +76,23 @@ public class Blockchain {
     public String serialise() {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        return gson.toJson(chain).toString();
+        return gson.toJson(this).toString();
+    }
+
+    public static Blockchain deserialise(String json) {
+        GsonFireBuilder builder = new GsonFireBuilder()
+            .registerPostProcessor(Blockchain.class, new PostProcessor<Blockchain>() {
+                @Override
+                public void postDeserialize(Blockchain result, JsonElement src, Gson gson) {
+                    result.validate();
+                }
+
+                @Override
+                public void postSerialize(JsonElement result, Blockchain src, Gson gson) {
+                }
+            });
+
+        Gson gson = builder.createGson();
+        return gson.fromJson(json, Blockchain.class);
     }
 }

@@ -39,4 +39,12 @@ public class BlockchainTest {
     Blockchain chain = new Blockchain();
     chain.serialise();
   }
+
+  @Test
+  public void testDeserialiseFromJSON() throws NoSuchAlgorithmException {
+    Blockchain chain = new Blockchain();
+    Blockchain deserialised = Blockchain.deserialise(chain.serialise());
+
+    assertThat(chain.tipHash(), equalTo(deserialised.tipHash()));
+  }
 }
