@@ -52,10 +52,11 @@ task copyJars(type: Copy) {
   into 'build/libs'
 }
 
-compileJava.dependsOn copyJars
+jar.dependsOn copyJars
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile "io.gsonfire:gson-fire:1.8.0"
     compile "com.google.code.gson:gson:2.8.0"
     testCompile "junit:junit:4.11"
 }
