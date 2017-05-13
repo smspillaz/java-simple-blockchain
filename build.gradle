@@ -47,6 +47,13 @@ task checkFindBugsReportTest << {
    }
 }
 
+task copyJars(type: Copy) {
+  from configurations.compile
+  into 'build/libs'
+}
+
+compileJava.dependsOn copyJars
+
 dependencies {
     testCompile "junit:junit:4.11"
 }
