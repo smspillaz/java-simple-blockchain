@@ -31,14 +31,34 @@ task checkFindBugsReport << {
    }
 }
 
+dependencies {
+    testCompile "junit:junit:4.11"
+}
+
 sourceSets {
     main {
         java {
             srcDir 'wallet'
             srcDir 'chain'
+            srcDir 'example'
+        }
+    }
+    test {
+        java {
             srcDir 'test'
         }
     }
+}
+
+test {
+    testLogging {
+        exceptionFormat = 'full'
+        events "passed", "skipped", "failed"
+    }
+
+    onOutput { descriptor, event ->
+        logger.lifecycle(event.message)
+   }
 }
 
 findbugsMain.finalizedBy checkFindBugsReport
