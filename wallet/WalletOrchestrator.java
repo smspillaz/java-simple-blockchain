@@ -51,8 +51,16 @@ public class WalletOrchestrator {
                                                "the server host, provided a certificate key and password.");
         }
 
-        SSLContext context = createSSLContextForKeyFileStream(new FileInputStream(keystore),
-                                                              password.toCharArray());
+        FileInputStream keyStoreStream = new FileInputStream(keystore);
+        SSLContext context;
+
+        try {
+            context = createSSLContextForKeyFileStream(keyStoreStream,
+                                                       password.toCharArray());
+        } finally {
+            keyStoreStream.close();
+        }
+
         HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
 
         URL url = new URL(host);
