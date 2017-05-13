@@ -33,4 +33,10 @@ public class BlockchainTest {
     assertThat(DatatypeConverter.printHexBinary(chain.tipHash()),
                equalTo(execeptedTransactionHash));
   }
+
+  @Test
+  public void testSerialiseToJSON() throws NoSuchAlgorithmException {
+    Blockchain chain = new Blockchain();
+    chain.serialise();
+  }
 }

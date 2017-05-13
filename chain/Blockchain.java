@@ -2,6 +2,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.security.NoSuchAlgorithmException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 /**
  * The Blockchain class just keeps a list of blocks and transactions.
  * It doesn't care about whether the transactions themselves are valid, it
@@ -58,5 +61,14 @@ public class Blockchain {
     public byte[] tipHash() {
         Block lastBlock = chain.get(chain.size() - 1);
         return lastBlock.hash;
+    }
+
+    /**
+     * Serialise the entire chain to JSON
+     */
+    public String serialise() {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        return gson.toJson(chain).toString();
     }
 }
