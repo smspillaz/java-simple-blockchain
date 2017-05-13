@@ -12,6 +12,10 @@ public class Blockchain {
                             null));
     }
 
+    public void appendTransaction(Transaction transaction) throws NoSuchAlgorithmException {
+        chain.add(new Block(transaction, null));
+    }
+
     public byte[] tipHash() {
         Block lastBlock = chain.get(chain.size() - 1);
         return lastBlock.hash;
