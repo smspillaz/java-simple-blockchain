@@ -3,26 +3,27 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.lang.IllegalArgumentException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 public class WalletOrchestrator {
-    private Logger logger;
-
-    public WalletOrchestrator(Logger logger) {
-        this.logger = logger;
-    }
-
     private SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
-                                                               char[] password) throws CertificateException,
-            NoSuchAlgorithmException,
-            KeyStoreException,
-            IOException,
-            KeyManagementException,
-            UnrecoverableKeyException {
+                                                        char[] password) throws CertificateException,
+                                                                                NoSuchAlgorithmException,
+                                                                                KeyStoreException,
+                                                                                IOException,
+                                                                                KeyManagementException,
+                                                                                UnrecoverableKeyException {
         SSLContext context = SSLContext.getInstance("TLS");
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(keyStoreStream, password);
@@ -31,41 +32,36 @@ public class WalletOrchestrator {
         trustManagerFactory.init(keyStore);
 
         context.init(null,
-                trustManagerFactory.getTrustManagers(),
-                null);
+                     trustManagerFactory.getTrustManagers(),
+                     null);
 
         return context;
     }
 
-    public void connect(String host, String keystore, String password) {
-        try {
-            logger.write("Attempting to connect...");
-
-            if (host.isEmpty() || keystore.isEmpty() || password.isEmpty()) {
-                logger.write( "Error: A required parameter is missing. Please ensure you have set " +
-                        "the server host, provided a certificate key and password.");
-                return;
-            }
-
-            // Send a test HTTPS request to server to see if we can connect
-            SSLContext context = createSSLContextForKeyFileStream(new FileInputStream(keystore),
-                    password.toCharArray());
-
-            HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
-
-            URL url = new URL(host);
-            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-            connection.setRequestProperty("Accept-Charset", "UTF-8");
-            InputStream response = connection.getInputStream();
-
-            Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
-            String result = s.hasNext() ? s.next() : "";
-
-            logger.write( result);
-
-        } catch (Exception e) {
-            logger.write(e.toString());
+    public String connect(String host, String keystore, String password) throws FileNotFoundException,
+                                                                                MalformedURLException,
+                                                                                CertificateException,
+                                                                                IOException,
+                                                                                NoSuchAlgorithmException,
+                                                                                KeyStoreException,
+                                                                                KeyManagementException,
+                                                                                UnrecoverableKeyException {
+        if (host.isEmpty() || keystore.isEmpty() || password.isEmpty()) {
+            throw new IllegalArgumentException("A required parameter is missing. Please ensure you have set " +
+                                               "the server host, provided a certificate key and password.");
         }
+
+        SSLContext context = createSSLContextForKeyFileStream(new FileInputStream(keystore),
+                                                              password.toCharArray());
+        HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+
+        URL url = new URL(host);
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        connection.setRequestProperty("Accept-Charset", "UTF-8");
+        InputStream response = connection.getInputStream();
+
+        Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 
 }

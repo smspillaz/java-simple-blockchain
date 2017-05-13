@@ -6,34 +6,29 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 
 public class WalletCLI {
-    private static class CLILogger implements Logger {
-        public void write(String msg) {
-            System.out.println(msg);
-        }
-    }
-
-    public static void usage(Logger logger) {
-        logger.write("WalletMain SERVER_HOST SERVER_JKS_KEYSTORE");
+    public static void usage() {
+        System.err.println("WalletMain SERVER_HOST SERVER_JKS_KEYSTORE");
     }
 
     public static void main(String[] args) throws IOException,
-            CertificateException,
-            NoSuchAlgorithmException,
-            KeyStoreException,
-            KeyManagementException,
-            UnrecoverableKeyException {
-
-        Logger logger = new WalletCLI.CLILogger();
-
-        WalletOrchestrator walletOrchestrator = new WalletOrchestrator(logger);
+                                                  CertificateException,
+                                                  NoSuchAlgorithmException,
+                                                  KeyStoreException,
+                                                  KeyManagementException,
+                                                  UnrecoverableKeyException {
+        /* In the case of the commandline interface, if something fails, we
+         * just throw an exception and let it propogate. */
+        WalletOrchestrator walletOrchestrator = new WalletOrchestrator();
 
         if (args.length < 2) {
-            usage(logger);
+            usage();
             System.exit(1);
         }
         String serverHost = args[0];
         String serverCertificateKeyStore = args[1];
 
-        walletOrchestrator.connect(serverHost, serverCertificateKeyStore, System.getenv("KEYSTORE_PASSWORD"));
+        walletOrchestrator.connect(serverHost,
+                                   serverCertificateKeyStore,
+                                   System.getenv("KEYSTORE_PASSWORD"));
     }
 }

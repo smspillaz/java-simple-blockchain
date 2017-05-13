@@ -14,7 +14,7 @@ import javafx.stage.WindowEvent;
 import static java.lang.System.exit;
 
 public class WalletMain extends Application {
-    WalletOrchestrator walletOrchestrator;
+    WalletConnectionLoggingWrapper walletOrchestrator;
     Stage launcherWindow;
     Stage transactionWindow;
     Stage newTransactionWindow;
@@ -27,7 +27,8 @@ public class WalletMain extends Application {
         console = new Console();
 
         // Set up the Wallet Orchestrator Class
-        walletOrchestrator = new WalletOrchestrator(console);
+        walletOrchestrator = new WalletConnectionLoggingWrapper(console,
+                                                                new WalletOrchestrator());
 
         // Launch Main menu
         launcherWindow();
@@ -113,7 +114,9 @@ public class WalletMain extends Application {
 
         connect.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                walletOrchestrator.connect(hostname.getText().trim(), keystoreFile.getText().trim(), keystorePassword.getText().trim());
+                walletOrchestrator.connect(hostname.getText().trim(),
+                                           keystoreFile.getText().trim(),
+                                           keystorePassword.getText().trim());
             }
         });
 
