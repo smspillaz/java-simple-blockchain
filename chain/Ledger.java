@@ -72,13 +72,12 @@ public class Ledger {
                  * validation to ensure that nobody spends money that they
                  * don't have. On the genesis block however, we don't deduct
                  * money, only add it */
-                if (index > 0) {
-                    if (ownership.get(transaction.src) < transaction.amount) {
-                        throw new TransactionValidationFailedException(transaction.src,
-                                                                       srcCoins,
-                                                                       transaction.dst,
-                                                                       transaction.amount);
-                    }
+                if (index > 0 &&
+                    ownership.get(transaction.src) < transaction.amount) {
+                    throw new TransactionValidationFailedException(transaction.src,
+                                                                   srcCoins,
+                                                                   transaction.dst,
+                                                                   transaction.amount);
                 }
 
                 /* Transaction would have been successful. Allow this transaction
