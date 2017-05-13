@@ -1,6 +1,8 @@
 import java.util.HashMap;
 import java.util.Map;
 
+import java.security.NoSuchAlgorithmException;
+
 /**
  * The Ledger class uses a blockchain internally to store transactions, but
  * is also responsible for validating transactions as they come into the
@@ -75,11 +77,23 @@ public class Ledger {
     /* Attempt to append a transaction to the underlying blockchain. If this
      * process fails, the transaction is just silently rejected - when the network
      * next downloads the transaction ledger it is as if it never took place */
-    public boolean appendTransacton(Transaction transaction) {
+    public boolean appendTransaction(Transaction transaction) throws NoSuchAlgorithmException {
+        /* If the map doesn't contain an address, then add it with
+         * a balance of zero chriscoins */
+        Ledger.maybeInitialiseMapEntry(ownership, transaction.src, 0);
+        Ledger.maybeInitialiseMapEntry(ownership, transaction.dst, 0);
+
+        /* Negative transactions never allowed */
+        if (transaction.amount < 0) {
+            return false;
+        }
+
         int srcCoins = ownership.get(transaction.src);
         if (srcCoins < transaction.amount) {
             return false;
         }
+
+        chain.appendTransaction(transaction);
 
         /* Transaction would have been successful. Allow this transaction
          * on the chain and update our view */
