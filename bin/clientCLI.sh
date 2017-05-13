@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -cp "build/classes/main" WalletMain $@
+java -cp "build/classes/main" WalletCLI $@
