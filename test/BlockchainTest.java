@@ -41,7 +41,8 @@ public class BlockchainTest {
   }
 
   @Test
-  public void testDeserialiseFromJSON() throws NoSuchAlgorithmException {
+  public void testDeserialiseFromJSON() throws NoSuchAlgorithmException,
+                                               Blockchain.IntegrityCheckFailedException {
     Blockchain chain = new Blockchain();
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 

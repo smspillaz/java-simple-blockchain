@@ -1,6 +1,9 @@
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.security.NoSuchAlgorithmException;
+
+import javax.xml.bind.DatatypeConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,6 +36,13 @@ public class Blockchain {
         }
     }
 
+    public static class IntegrityCheckFailedException extends Exception {
+        public IntegrityCheckFailedException(int index, Block block, String msg) {
+            super("Blockchain integrity check failed at block " + index
+                  + " (" + block.getTransaction() + "). " + msg);
+        }
+    }
+
     public interface TransactionEnumerator {
         void consume(int index, Transaction transaction) throws WalkFailedException;
     }
@@ -44,7 +54,36 @@ public class Blockchain {
         }
     }
 
-    private void validate() {
+    /**
+     * validate
+     *
+     * Validate the integrity of the underlying blockchain. This does not
+     * check the payloads of each block (the transactions) but rather checks
+     * that the hash of each block (starting from the child most block to
+     * the parent most block) computes correctly. Implicit in this check
+     * is whether the nonce was a valid proof of work, since the nonce is
+     * included in the block itself.
+     *
+     * Throws Blockchain.IntegrityCheckFailedException if something goes wrong
+     */
+    private void validate() throws NoSuchAlgorithmException,
+                                   IntegrityCheckFailedException {
+        int index = chain.size();
+        while (index-- > 0) {
+            Block block = chain.get(index);
+            byte[] computedHash = block.computeContentHash(index > 0 ? chain.get(index - 1) : null);
+            if (!Arrays.equals(block.hash, computedHash)) {
+                throw new IntegrityCheckFailedException(
+                    index,
+                    block,
+                    " Expected hash " + DatatypeConverter.printHexBinary(computedHash) +
+                    " but the block hash was instead " + DatatypeConverter.printHexBinary(block.hash)
+                );
+            }
+
+            /* Also check the hash to make sure that it has a certain number
+             * of leading zeroes (TODO) */
+        }
     }
 
     /**
