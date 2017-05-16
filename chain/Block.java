@@ -10,9 +10,20 @@ public class Block {
     public Block(Transaction transaction,
                  Block parent) throws NoSuchAlgorithmException {
         this.transaction = transaction;
+        this.hash = this.computeContentHash(parent);
+    }
 
+    /* Perhaps expose a method to apply this to some ledger that
+     * gets computed over time instead of a public field */
+    Transaction getTransaction() {
+        return transaction;
+    }
+
+    public byte[] computeContentHash(Block parent) throws NoSuchAlgorithmException {
         /* Compute a hash based on the transaction itself
-         * and the parent block */
+         * and the parent block.
+         *
+         * Note that this hash does not include the computed hash */
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] parentHash = parent != null ? parent.hash : new byte[0];
         byte[] transactionHash = transaction.hash();
@@ -23,13 +34,8 @@ public class Block {
                          message,
                          parentHash.length,
                          transactionHash.length);
-        this.hash = digest.digest(message);
-    }
 
-    /* Perhaps expose a method to apply this to some ledger that
-     * gets computed over time instead of a public field */
-    Transaction getTransaction() {
-        return transaction;
+        return digest.digest(message);
     }
 
     public String toString() {
