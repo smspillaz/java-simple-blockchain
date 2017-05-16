@@ -8,8 +8,8 @@ import javax.json.Json;
 import java.io.StringReader;
 
 public class Miner {
-    private byte[] senderPublicKey, receiverPublicKey, signature;
-    private long amount;
+    //private byte[] senderPublicKey, receiverPublicKey, signature;
+    //private long amount;
 
     public boolean parseRequest(String json){
         JsonReader reader = Json.createReader(new StringReader(json));
