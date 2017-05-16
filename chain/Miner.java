@@ -3,6 +3,8 @@
  */
 // test @14/05/17 1745
 import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.Json;
 import java.io.StringReader;
 
 public class Miner {
@@ -10,10 +12,18 @@ public class Miner {
     private long amount;
 
     public boolean parseRequest(String json){
-        JsonObject jObj = new JsonObject(new StringReader(json)); // json
-        String senderPublicKeyB64 = jObj.getString("spk");
-        String receiverPublicKeyB64 = jObj.getString("rpk");
-        return false;
+        JsonReader reader = Json.createReader(new StringReader(json));
+        JsonObject jObj = null;
+        try {
+            jObj = reader.readObject();
+        } finally {
+            reader.close();
+        }
+
+        //String senderPublicKeyB64 = jObj.getString("spk");
+        //String receiverPublicKeyB64 = jObj.getString("rpk");
+
+        return jObj != null;
     }
 
     public boolean walletRequest(byte[] senderPublicKey, byte[] receiverPublicKey, byte[] amount, byte[] signature) {
