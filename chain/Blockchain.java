@@ -6,9 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 
-import io.gsonfire.GsonFireBuilder;
-import io.gsonfire.PostProcessor;
-
 /**
  * The Blockchain class just keeps a list of blocks and transactions.
  * It doesn't care about whether the transactions themselves are valid, it
@@ -79,20 +76,15 @@ public class Blockchain {
         return gson.toJson(this).toString();
     }
 
-    public static Blockchain deserialise(String json) {
-        GsonFireBuilder builder = new GsonFireBuilder()
-            .registerPostProcessor(Blockchain.class, new PostProcessor<Blockchain>() {
-                @Override
-                public void postDeserialize(Blockchain result, JsonElement src, Gson gson) {
-                    result.validate();
-                }
+    public static Blockchain deserialise(String json) throws NoSuchAlgorithmException,
+                                                             IntegrityCheckFailedException {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        Blockchain result = gson.fromJson(json, Blockchain.class);
 
-                @Override
-                public void postSerialize(JsonElement result, Blockchain src, Gson gson) {
-                }
-            });
-
-        Gson gson = builder.createGson();
-        return gson.fromJson(json, Blockchain.class);
+        /* Call result.validate now. If something goes wrong, we'll propogate
+         * an exception up to the caller */
+        result.validate();
+        return result;
     }
 }
