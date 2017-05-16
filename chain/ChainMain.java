@@ -16,6 +16,8 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import javafx.application.Platform;
+
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
 import java.security.KeyStore;
@@ -30,6 +32,11 @@ import com.sun.net.httpserver.HttpsExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
+
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 public class ChainMain {
     private static SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
@@ -53,6 +60,44 @@ public class ChainMain {
         return context;
     }
 
+    public static Blockchain fetchInitialBlockchain(String host) throws NoSuchAlgorithmException,
+                                                                        Blockchain.WalkFailedException {
+        if (host == null) {
+            System.out.println("No host specified to download blockchain from, assuming this is the gensis node");
+            return new Blockchain();
+        } else {
+            /* TODO: Implement ability to download, parse and validate existing
+             * blockchain */
+            return null;
+        }
+    }
+
+    public static class Arguments {
+        @Option(name="-keyfile", usage="The Java KeyStore file to use (mandatory)", metaVar="KEYSTORE")
+        public String keyfile;
+
+        @Option(name="-download-blockchain-from",
+                usage="Name of a host to download a blockchain from. This node will be a gensis node otherwise",
+                metaVar="HOST")
+        public String downloadBlockchainFrom;
+
+        public Arguments(String[] args) {
+            CmdLineParser parser = new CmdLineParser(this);
+
+            try {
+                parser.parseArgument(args);
+
+                if (keyfile == null) {
+                    throw new CmdLineException(parser, "Must provide a -keyfile");
+                }
+            } catch (CmdLineException e) {
+                System.err.println(e.getMessage());
+                parser.printUsage(System.err);
+                Platform.exit();
+            }
+        }
+    }
+
     public static void main(String[] args) throws IOException,
                                                   NoSuchAlgorithmException,
                                                   KeyStoreException,
@@ -60,8 +105,9 @@ public class ChainMain {
                                                   CertificateException,
                                                   UnrecoverableKeyException,
                                                   Blockchain.WalkFailedException {
+        Arguments arguments = new Arguments(args);
         HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
-        SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(args[0]),
+        SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(arguments.keyfile),
                                                                         System.getenv("KEYSTORE_PASSWORD")
                                                                               .toCharArray());
 
@@ -82,7 +128,7 @@ public class ChainMain {
             }
         });
 
-        Blockchain chain = new Blockchain();
+        Blockchain chain = fetchInitialBlockchain(arguments.downloadBlockchainFrom);
 
         server.createContext("/transaction", new HttpHandler () {
             @Override
