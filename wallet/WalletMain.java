@@ -11,6 +11,8 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 
+import java.security.NoSuchAlgorithmException;
+
 import static java.lang.System.exit;
 
 public class WalletMain extends Application {
@@ -147,6 +149,10 @@ public class WalletMain extends Application {
 
                     console.write("Balance is " + observer.balance);
                 } catch (Blockchain.WalkFailedException err) {
+                    console.write(err.toString());
+                } catch (Blockchain.IntegrityCheckFailedException err) {
+                    console.write(err.toString());
+                } catch (NoSuchAlgorithmException err) {
                     console.write(err.toString());
                 }
 
