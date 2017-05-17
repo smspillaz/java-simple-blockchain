@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import static java.lang.System.exit;
 
 public class WalletMain extends Application {
-    WalletConnectionLoggingWrapper walletOrchestrator;
     Stage launcherWindow;
     Stage transactionWindow;
     Stage newTransactionWindow;
@@ -27,10 +26,6 @@ public class WalletMain extends Application {
 
     public void start(Stage applicationStart) {
         console = new Console();
-
-        // Set up the Wallet Orchestrator Class
-        walletOrchestrator = new WalletConnectionLoggingWrapper(console,
-                                                                new WalletOrchestrator());
 
         // Launch Main menu
         launcherWindow();
@@ -114,51 +109,17 @@ public class WalletMain extends Application {
             }
         });
 
-        class AccumulatingBalanceTransactionObserver implements Ledger.TransactionObserver {
-            public int balance;
-            Logger console;
-
-            AccumulatingBalanceTransactionObserver(Logger console) {
-                this.console = console;
-                this.balance = 0;
-            }
-
-            @Override
-            public void consume(Transaction transaction) {
-                /* Hard coding for the win */
-                if (transaction.dst == 0) {
-                    balance += transaction.amount;
-                    console.write(transaction.toString());
-                } else if (transaction.src == 0) {
-                    balance -= transaction.amount;
-                    console.write(transaction.toString());
-                }
-            }
-        }
-
         connect.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                String chainStr = walletOrchestrator.fetchBlockchain(hostname.getText().trim(),
-                                                                     keystoreFile.getText().trim(),
-                                                                     keystorePassword.getText().trim());
+                WalletConnectionLoggingWrapper orchestrator = new WalletConnectionLoggingWrapper(
+                    console,
+                    hostname.getText().trim(),
+                    keystoreFile.getText().trim(),
+                    keystorePassword.getText().trim()
+                );
 
-                try {
-                    Blockchain chain = Blockchain.deserialise(chainStr);
-                    AccumulatingBalanceTransactionObserver observer = new AccumulatingBalanceTransactionObserver(console);
-                    new Ledger(chain, observer);
-
-                    console.write("Balance is " + observer.balance);
-                } catch (Blockchain.WalkFailedException err) {
-                    console.write(err.toString());
-                } catch (Blockchain.IntegrityCheckFailedException err) {
-                    console.write(err.toString());
-                } catch (NoSuchAlgorithmException err) {
-                    console.write(err.toString());
-                }
-
-                walletOrchestrator.connect(hostname.getText().trim(),
-                                           keystoreFile.getText().trim(),
-                                           keystorePassword.getText().trim());
+                orchestrator.ascertainBalance(0);
+                orchestrator.transaction();
             }
         });
 

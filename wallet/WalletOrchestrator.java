@@ -17,6 +17,8 @@ import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 public class WalletOrchestrator {
+    public String host;
+
     private SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
                                                         char[] password) throws CertificateException,
                                                                                 NoSuchAlgorithmException,
@@ -38,14 +40,13 @@ public class WalletOrchestrator {
         return context;
     }
 
-    public String connect(String host, String keystore, String password) throws FileNotFoundException,
-                                                                                MalformedURLException,
-                                                                                CertificateException,
-                                                                                IOException,
-                                                                                NoSuchAlgorithmException,
-                                                                                KeyStoreException,
-                                                                                KeyManagementException,
-                                                                                UnrecoverableKeyException {
+    public WalletOrchestrator(String host, String keystore, String password) throws FileNotFoundException,
+                                                                                    CertificateException,
+                                                                                    IOException,
+                                                                                    NoSuchAlgorithmException,
+                                                                                    KeyStoreException,
+                                                                                    KeyManagementException,
+                                                                                    UnrecoverableKeyException {
         if (host.isEmpty() || keystore.isEmpty() || password.isEmpty()) {
             throw new IllegalArgumentException("A required parameter is missing. Please ensure you have set " +
                                                "the server host, provided a certificate key and password.");
@@ -62,8 +63,12 @@ public class WalletOrchestrator {
         }
 
         HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+        this.host = host;
+    }
 
-        URL url = new URL("https://" + host + ":3002/transaction");
+    private String request(String endpoint) throws MalformedURLException,
+                                                   IOException {
+        URL url = new URL("https://" + host + ":3002/" + endpoint);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestProperty("Accept-Charset", "UTF-8");
         InputStream response = connection.getInputStream();
@@ -72,38 +77,27 @@ public class WalletOrchestrator {
         return s.hasNext() ? s.next() : "";
     }
 
-    public String fetchBlockchain(String host, String keystore, String password) throws FileNotFoundException,
-                                                                                        MalformedURLException,
-                                                                                        CertificateException,
-                                                                                        IOException,
-                                                                                        NoSuchAlgorithmException,
-                                                                                        KeyStoreException,
-                                                                                        KeyManagementException,
-                                                                                        UnrecoverableKeyException {
-        if (host.isEmpty() || keystore.isEmpty() || password.isEmpty()) {
-            throw new IllegalArgumentException("A required parameter is missing. Please ensure you have set " +
-                    "the server host, provided a certificate key and password.");
-        }
-
-        FileInputStream keyStoreStream = new FileInputStream(keystore);
-        SSLContext context;
-
-        try {
-            context = createSSLContextForKeyFileStream(keyStoreStream,
-                    password.toCharArray());
-        } finally {
-            keyStoreStream.close();
-        }
-
-        HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
-
-        URL url = new URL("https://" + host + ":3002/download_blockchain");
-        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-        connection.setRequestProperty("Accept-Charset", "UTF-8");
-        InputStream response = connection.getInputStream();
-
-        Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
+    public String transaction() throws MalformedURLException,
+                                       IOException {
+        return request("transaction");
     }
 
+    public Blockchain fetchBlockchain() throws MalformedURLException,
+                                               IOException,
+                                               NoSuchAlgorithmException,
+                                               Blockchain.IntegrityCheckFailedException {
+        return Blockchain.deserialise(request("download_blockchain"));
+    }
+
+    public static int ascertainBalanceFromChain(int walletID, Blockchain chain, Logger logger) throws Blockchain.WalkFailedException {
+        return new WalletBlockchainConsumer(chain).ascertainBalance(walletID, logger);
+    }
+
+    public int ascertainBalance(int walletID) throws Blockchain.WalkFailedException,
+                                                     MalformedURLException,
+                                                     IOException,
+                                                     NoSuchAlgorithmException,
+                                                     Blockchain.IntegrityCheckFailedException {
+        return ascertainBalanceFromChain(walletID, fetchBlockchain(), null);
+    }
 }
