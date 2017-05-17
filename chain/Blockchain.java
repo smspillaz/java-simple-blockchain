@@ -55,6 +55,27 @@ public class Blockchain {
     }
 
     /**
+     * parentBlockHash
+     *
+     * Get the hash of the parent block. This function is effectively
+     * internal and intended to be used by functions that need to compute
+     * block hashes. The consumer of the blockchain should usually not
+     * need to use this.
+     *
+     * Note that as there is a genesis block, not all blocks are guaranteed
+     * to have a hash. The caller must handle this case.
+     *
+     * It is an error to pass an index that is out of bounds.
+     */
+    public byte[] parentBlockHash(int index) {
+        return index > 0 ? chain.get(index - 1).hash : null;
+    }
+
+    public int length() {
+        return chain.size();
+    }
+
+    /**
      * validate
      *
      * Validate the integrity of the underlying blockchain. This does not
@@ -71,7 +92,7 @@ public class Blockchain {
         int index = chain.size();
         while (index-- > 0) {
             Block block = chain.get(index);
-            byte[] computedHash = block.computeContentHash(index > 0 ? chain.get(index - 1) : null);
+            byte[] computedHash = block.computeContentHash(parentBlockHash(index));
             if (!Arrays.equals(block.hash, computedHash)) {
                 throw new IntegrityCheckFailedException(
                     index,
@@ -94,7 +115,7 @@ public class Blockchain {
      * to the chain.
      */
     public void appendTransaction(Transaction transaction) throws NoSuchAlgorithmException {
-        chain.add(new Block(transaction, chain.get(chain.size() - 1)));
+        chain.add(new Block(transaction, parentBlockHash(chain.size())));
     }
 
     /**
