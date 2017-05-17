@@ -15,11 +15,9 @@ public class WalletCLI {
                                                   NoSuchAlgorithmException,
                                                   KeyStoreException,
                                                   KeyManagementException,
-                                                  UnrecoverableKeyException {
-        /* In the case of the commandline interface, if something fails, we
-         * just throw an exception and let it propogate. */
-        WalletOrchestrator walletOrchestrator = new WalletOrchestrator();
-
+                                                  UnrecoverableKeyException,
+                                                  Blockchain.WalkFailedException,
+                                                  Blockchain.IntegrityCheckFailedException {
         if (args.length < 2) {
             usage();
             System.exit(1);
@@ -27,8 +25,13 @@ public class WalletCLI {
         String serverHost = args[0];
         String serverCertificateKeyStore = args[1];
 
-        walletOrchestrator.connect(serverHost,
-                                   serverCertificateKeyStore,
-                                   System.getenv("KEYSTORE_PASSWORD"));
+        /* In the case of the commandline interface, if something fails, we
+         * just throw an exception and let it propogate. */
+        WalletOrchestrator walletOrchestrator = new WalletOrchestrator(serverHost,
+                                                                       serverCertificateKeyStore,
+                                                                       System.getenv("KEYSTORE_PASSWORD"));
+
+        System.out.println("Current balance: " + walletOrchestrator.ascertainBalance(0));
+        System.out.println(walletOrchestrator.transaction());
     }
 }
