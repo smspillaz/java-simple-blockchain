@@ -182,6 +182,9 @@ public class ChainMain {
                     case "BAD_POW":
                         msg.append("adding a block with a bad proof of work function");
                         break;
+                    default:
+                        msg.append("... doing nothing. Is this a correct modify op?");
+                        break;
                     }
                 }
 
