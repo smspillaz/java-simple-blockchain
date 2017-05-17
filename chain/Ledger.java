@@ -1,5 +1,9 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 
 import java.security.NoSuchAlgorithmException;
 
@@ -48,7 +52,7 @@ public class Ledger {
      * address, optionally calling out to a TransactionObserver for each
      * transaction */
     private static Map<Integer, Integer> walkTransactions(Blockchain chain,
-                                                          TransactionObserver observer) throws Blockchain.WalkFailedException {
+                                                          List<TransactionObserver> observers) throws Blockchain.WalkFailedException {
         Map<Integer, Integer> ownership = new HashMap<Integer, Integer>();
 
         chain.walk(new Blockchain.TransactionEnumerator() {
@@ -88,7 +92,7 @@ public class Ledger {
                 ownership.put(transaction.dst,
                               ownership.get(transaction.dst) + transaction.amount);
 
-                if (observer != null) {
+                for (TransactionObserver observer : observers) {
                     observer.consume(transaction);
                 }
             }
@@ -100,7 +104,8 @@ public class Ledger {
     /* Construct a new ledger from a Blockchain. */
     public Ledger(Blockchain chain) throws Blockchain.WalkFailedException {
         this.chain = chain;
-        this.ownership = Ledger.walkTransactions(this.chain, null);
+        this.ownership = Ledger.walkTransactions(this.chain,
+                                                 new ArrayList<TransactionObserver>());
     }
 
     /* Construct a new ledger from a Blockchain, but also observe
@@ -108,7 +113,16 @@ public class Ledger {
     public Ledger(Blockchain chain,
                   TransactionObserver observer) throws Blockchain.WalkFailedException {
         this.chain = chain;
-        this.ownership = Ledger.walkTransactions(this.chain, observer);
+        this.ownership = Ledger.walkTransactions(this.chain,
+                                                 Arrays.asList(new TransactionObserver[] {
+                                                    observer
+                                                 }));
+    }
+
+    public Ledger(Blockchain chain,
+                  List<TransactionObserver> observers) throws Blockchain.WalkFailedException {
+        this.chain = chain;
+        this.ownership = Ledger.walkTransactions(this.chain, observers);
     }
 
     /* Attempt to append a transaction to the underlying blockchain. If this
