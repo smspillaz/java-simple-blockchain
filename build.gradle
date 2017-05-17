@@ -57,6 +57,7 @@ dependencies {
     compile "com.google.code.gson:gson:2.8.0"
     compile "javax.json:javax.json-api:1.0"
     compile "args4j:args4j:2.33"
+    compile "com.google.code.findbugs:findbugs:3.0.1"
     testCompile "junit:junit:4.11"
 }
 

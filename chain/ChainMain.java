@@ -40,6 +40,8 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public class ChainMain {
     private static SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
                                                                char[] password) throws CertificateException,
@@ -88,6 +90,8 @@ public class ChainMain {
                 metaVar="HOST")
         public String downloadBlockchainFrom;
 
+        @SuppressFBWarnings(value="UR_UNINIT_READ",
+                            justification="Values are set by CmdLineParser")
         public Arguments(String[] args) {
             CmdLineParser parser = new CmdLineParser(this);
 
