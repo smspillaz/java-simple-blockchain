@@ -85,4 +85,29 @@ public class BlockchainTest {
     /* This should throw an integrity check failure */
     Blockchain.deserialise(chain.serialise());
   }
+
+  @Test(expected=Blockchain.IntegrityCheckFailedException.class)
+  public void testIntegrityCheckFailsWhenModifyingCenterHash() throws NoSuchAlgorithmException,
+                                                                  Blockchain.IntegrityCheckFailedException,
+                                                                  Blockchain.WalkFailedException {
+    Blockchain chain = new Blockchain();
+    Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+
+    ledger.appendTransaction(new Transaction(0, 1, 20, 0));
+    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
+    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
+
+    chain.walk(new Blockchain.BlockEnumerator() {
+        public void consume(int index, Block block) {
+            /* Be a little bit evil and only modify the second transaction */
+            if (index == 1) {
+                block.getTransaction().src = 1;
+                block.getTransaction().dst = 0;
+            }
+        }
+    });
+
+    /* This should throw an integrity check failure */
+    Blockchain.deserialise(chain.serialise());
+  }
 }
