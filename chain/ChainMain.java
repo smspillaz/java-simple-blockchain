@@ -90,6 +90,10 @@ public class ChainMain {
                 if (keystore == null) {
                     throw new CmdLineException(parser, "Must provide a -keystore");
                 }
+
+                if (System.getenv("KEYSTORE_PASSWORD") == null) {
+                    throw new CmdLineException(parser, "Must set KEYSTORE_PASSWORD in the environment");
+                }
             } catch (CmdLineException e) {
                 System.err.println(e.getMessage());
                 parser.printUsage(System.err);
