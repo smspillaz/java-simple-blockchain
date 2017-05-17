@@ -73,8 +73,8 @@ public class ChainMain {
     }
 
     public static class Arguments {
-        @Option(name="-keyfile", usage="The Java KeyStore file to use (mandatory)", metaVar="KEYSTORE")
-        public String keyfile;
+        @Option(name="-keystore", usage="The Java KeyStore file to use (mandatory)", metaVar="KEYSTORE")
+        public String keystore;
 
         @Option(name="-download-blockchain-from",
                 usage="Name of a host to download a blockchain from. This node will be a gensis node otherwise",
@@ -87,14 +87,16 @@ public class ChainMain {
             try {
                 parser.parseArgument(args);
 
-                if (keyfile == null) {
-                    throw new CmdLineException(parser, "Must provide a -keyfile");
+                if (keystore == null) {
+                    throw new CmdLineException(parser, "Must provide a -keystore");
                 }
             } catch (CmdLineException e) {
                 System.err.println(e.getMessage());
                 parser.printUsage(System.err);
                 Platform.exit();
             }
+
+            System.out.println(keystore);
         }
     }
 
@@ -107,7 +109,7 @@ public class ChainMain {
                                                   Blockchain.WalkFailedException {
         Arguments arguments = new Arguments(args);
         HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
-        SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(arguments.keyfile),
+        SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(arguments.keystore),
                                                                         System.getenv("KEYSTORE_PASSWORD")
                                                                               .toCharArray());
 
