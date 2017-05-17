@@ -48,4 +48,24 @@ public class BlockchainTest {
 
     assertThat(chain.tipHash(), equalTo(deserialised.tipHash()));
   }
+
+  @Test(expected=Blockchain.IntegrityCheckFailedException.class)
+  public void testIntegrityCheckFailsWhenModifyingHashes() throws NoSuchAlgorithmException,
+                                                                  Blockchain.IntegrityCheckFailedException,
+                                                                  Blockchain.WalkFailedException {
+    Blockchain chain = new Blockchain();
+    chain.walk(new Blockchain.BlockEnumerator() {
+        public void consume(int index, Block block) {
+            /* Block here is mutable, so we can mess with its contents. Its
+             * hash will stay as is and this should fail validation. In this
+             * scenario a malicious chain makes another wallet the genesis
+             * node */
+            block.getTransaction().src = 1;
+            block.getTransaction().dst = 1;
+        }
+    });
+
+    /* This should throw an integrity check failure */
+    Blockchain.deserialise(chain.serialise());
+  }
 }
