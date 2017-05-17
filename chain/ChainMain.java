@@ -139,11 +139,14 @@ public class ChainMain {
                         try {
                             block.hash = block.computeContentHash(chain.parentBlockHash(index));
                         } catch (NoSuchAlgorithmException e) {
+                            System.err.println(e.getMessage());
+                            Platform.exit();
                         }
                     }
                 }
             });
         } catch (Blockchain.WalkFailedException e) {
+            System.err.println("Failed to walk entire chain because: " + e.getMessage());
         }
     }
 
