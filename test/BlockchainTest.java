@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Collection;
 
 import java.security.NoSuchAlgorithmException;
@@ -44,6 +45,22 @@ public class BlockchainTest {
   public void testDeserialiseFromJSON() throws NoSuchAlgorithmException,
                                                Blockchain.IntegrityCheckFailedException {
     Blockchain chain = new Blockchain();
+    Blockchain deserialised = Blockchain.deserialise(chain.serialise());
+
+    assertThat(chain.tipHash(), equalTo(deserialised.tipHash()));
+  }
+
+  @Test
+  public void testDeserialiseManyBlocksFromJSON() throws NoSuchAlgorithmException,
+                                                         Blockchain.IntegrityCheckFailedException,
+                                                         Blockchain.WalkFailedException {
+    Blockchain chain = new Blockchain();
+    Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+
+    ledger.appendTransaction(new Transaction(0, 1, 20, 0));
+    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
+    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
+
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 
     assertThat(chain.tipHash(), equalTo(deserialised.tipHash()));
