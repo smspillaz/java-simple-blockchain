@@ -1,4 +1,6 @@
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -76,6 +78,11 @@ public class ChainMain {
         @Option(name="-keystore", usage="The Java KeyStore file to use (mandatory)", metaVar="KEYSTORE")
         public String keystore;
 
+        @Option(name="-corrupt-chain-with",
+                usage="Op to corrupt chain with (MODIFY_TX, INVALID_TX, BAD_SIGNATURE, BAD_POW)",
+                metaVar="OP")
+        public String corruptChainWith;
+
         @Option(name="-download-blockchain-from",
                 usage="Name of a host to download a blockchain from. This node will be a gensis node otherwise",
                 metaVar="HOST")
@@ -91,6 +98,21 @@ public class ChainMain {
                     throw new CmdLineException(parser, "Must provide a -keystore");
                 }
 
+                if (corruptChainWith != null) {
+                    /* Check to make sure that it is a valid operation */
+                    List<String> validOps = Arrays.asList(new String[] {
+                        "MODIFY_TX",
+                        "INVALID_TX",
+                        "BAD_SIGNATURE",
+                        "BAD_POW"
+                    });
+
+                    if (!validOps.contains(corruptChainWith)) {
+                        throw new CmdLineException(parser, "-corrupt-chain-with must be one of " +
+                                                           "MODIFY_TX, INVALID_TX, BAD_SIGNATURE, or BAD_POW");
+                    }
+                }
+
                 if (System.getenv("KEYSTORE_PASSWORD") == null) {
                     throw new CmdLineException(parser, "Must set KEYSTORE_PASSWORD in the environment");
                 }
@@ -102,6 +124,63 @@ public class ChainMain {
 
             System.out.println(keystore);
         }
+    }
+
+    public static void rehashChainFromIndex(Blockchain chain,
+                                            int rehashFrom) {
+        try {
+            chain.walk(new Blockchain.BlockEnumerator() {
+                public void consume(int index, Block block) {
+                    if (index >= rehashFrom) {
+                        try {
+                            block.hash = block.computeContentHash(chain.parentBlockHash(index));
+                        } catch (NoSuchAlgorithmException e) {
+                        }
+                    }
+                }
+            });
+        } catch (Blockchain.WalkFailedException e) {
+        }
+    }
+
+    public static void performChainCorruption(Blockchain chain,
+                                              Ledger ledger,
+                                              String op) throws Blockchain.WalkFailedException {
+        /* Chosen by fair dice roll, guaranteed to be random */
+        int random = 2;
+        int indexToModify = random % chain.length();
+        chain.walk(new Blockchain.BlockEnumerator() {
+            public void consume(int index, Block block) {
+                StringBuilder msg = new StringBuilder();
+                msg.append("Maliciously modifying block " + block.toString() + " by: ");
+                if (index == indexToModify) {
+                    switch (op) {
+                    case "MODIFY_TX":
+                        /* Modify a transaction in flight, for instance, by subtracting
+                         * one from the amount */
+                        msg.append("subtracting 1 from the transaction amount");
+                        block.getTransaction().amount -= 1;
+                        break;
+                    case "INVALID_TX":
+                        /* Make a transaction negative */
+                        msg.append("negating the transaction amount");
+                        block.getTransaction().amount *= -1;
+                        rehashChainFromIndex(chain, index);
+                        break;
+                    case "BAD_SIGNATURE":
+                        msg.append("modifying the transaction amount but rehashing the block (and all children)");
+                        block.getTransaction().amount -= 1;
+                        rehashChainFromIndex(chain, index);
+                        break;
+                    case "BAD_POW":
+                        msg.append("adding a block with a bad proof of work function");
+                        break;
+                    }
+                }
+
+                System.out.println(msg.toString());
+            }
+        });
     }
 
     public static void main(String[] args) throws IOException,
@@ -135,6 +214,10 @@ public class ChainMain {
         });
 
         Blockchain chain = fetchInitialBlockchain(arguments.downloadBlockchainFrom);
+        Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+        if (arguments.corruptChainWith != null) {
+            performChainCorruption(chain, ledger, arguments.corruptChainWith);
+        }
 
         server.createContext("/transaction", new HttpHandler () {
             @Override
