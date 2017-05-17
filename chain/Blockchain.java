@@ -43,14 +43,14 @@ public class Blockchain {
         }
     }
 
-    public interface TransactionEnumerator {
-        void consume(int index, Transaction transaction) throws WalkFailedException;
+    public interface BlockEnumerator {
+        void consume(int index, Block block) throws WalkFailedException;
     }
 
-    public void walk(TransactionEnumerator enumerator) throws WalkFailedException {
+    public void walk(BlockEnumerator enumerator) throws WalkFailedException {
         int size = chain.size();
         for (int i = 0; i < size; ++i) {
-            enumerator.consume(i, chain.get(i).getTransaction());
+            enumerator.consume(i, chain.get(i));
         }
     }
 

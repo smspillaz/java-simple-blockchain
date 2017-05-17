@@ -55,8 +55,10 @@ public class Ledger {
                                                           List<TransactionObserver> observers) throws Blockchain.WalkFailedException {
         Map<Integer, Integer> ownership = new HashMap<Integer, Integer>();
 
-        chain.walk(new Blockchain.TransactionEnumerator() {
-            public void consume(int index, Transaction transaction) throws Blockchain.WalkFailedException {
+        chain.walk(new Blockchain.BlockEnumerator() {
+            public void consume(int index, Block block) throws Blockchain.WalkFailedException {
+                Transaction transaction = block.getTransaction();
+
                 /* If the map doesn't contain an address, then add it with
                  * a balance of zero chriscoins */
                 Ledger.maybeInitialiseMapEntry(ownership, transaction.src, 0);
