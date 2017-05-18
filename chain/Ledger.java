@@ -136,8 +136,8 @@ public class Ledger {
         Ledger.maybeInitialiseMapEntry(ownership, transaction.src, 0);
         Ledger.maybeInitialiseMapEntry(ownership, transaction.dst, 0);
 
-        /* Negative transactions never allowed */
-        if (transaction.amount < 0) {
+        /* Transaction must have an amount */
+        if (transaction.amount <= 0) {
             return false;
         }
 

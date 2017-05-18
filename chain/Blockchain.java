@@ -1,13 +1,15 @@
-import java.util.Arrays;
+import java.security.DigestException;
 import java.util.List;
 import java.util.ArrayList;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import java.security.MessageDigest;
 
 /**
  * The Blockchain class just keeps a list of blocks and transactions.
@@ -16,12 +18,25 @@ import com.google.gson.JsonElement;
  * make sure that a transaction that is about to be appended makes sense.
  *
  * Each block comprises of a transaction and a parent block, and its hash
- * is influced by the parent-most block's hash. The chain also provides a
+ * is influenced by the parent-most block's hash. The chain also provides a
  * mechanism to iterate over all the prior transactions starting from the
  * genesis to the child-most block in the chain */
+
 public class Blockchain {
     private List<Block> chain;
+    private  MessageDigest digest;
+    public byte[] mkHash(byte[] message, int offset, int len){
+        try {
+            digest.digest(message, offset, len);
+        }
+        catch(DigestException e){
+            ; // TODO sort out proper logging and error handling
+        }
+        return digest.digest();
+    }
+
     public Blockchain() throws NoSuchAlgorithmException {
+        digest = MessageDigest.getInstance(Globals.hashAlg); // already throws it's own NoSuchAlgorithmException
         chain = new ArrayList<Block>();
         /* On the construction of the blockchain, create a genesis node.
          * Note that right now, we are not signing transactions */
