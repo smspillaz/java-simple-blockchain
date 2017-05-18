@@ -2,8 +2,10 @@
 *.iml
 *.iws
 *.ipr
+*.jar
 .idea
 .gradle
 keys/*
 build/
 keys/
+gradle/wrapper/

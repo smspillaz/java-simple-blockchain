@@ -11,11 +11,8 @@ repositories {
   }
 }
 
-dependencies {
-    compile 'javax.json:javax.json-api:1.0'
-}
 /* Because FindBugs doesn't print to the stderr ... */
-task checkFindBugsReport << {
+task checkFindBugsReportMain << {
    def xmlReport = findbugsMain.reports.xml
    def slurped = new XmlSlurper().parse(xmlReport.destination)
    def report = ""
@@ -31,15 +28,64 @@ task checkFindBugsReport << {
    }
 }
 
+task checkFindBugsReportTest << {
+   def xmlReport = findbugsTest.reports.xml
+   def slurped = new XmlSlurper().parse(xmlReport.destination)
+   def report = ""
+   slurped['BugInstance'].eachWithIndex { bug, index ->
+       report += "${index + 1}. Found bug risk ${bug.@'type'} of category ${bug.@'category'} "
+       report += "in the following places"
+       bug['SourceLine'].each { place ->
+           report += "\n       ${place.@'classname'} at lines ${place.@'start'}:${place.@'end'}"
+       }
+   }
+   if (report.length() > 1) {
+       logger.error "[FINDBUGS]\n ${report}"
+   }
+}
+
+task copyJars(type: Copy) {
+  from configurations.compile
+  into 'build/libs'
+}
+
+jar.dependsOn copyJars
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile "io.gsonfire:gson-fire:1.8.0"
+    compile "com.google.code.gson:gson:2.8.0"
+    compile "javax.json:javax.json-api:1.0"
+    compile "args4j:args4j:2.33"
+    compile "com.google.code.findbugs:findbugs:3.0.1"
+    testCompile "junit:junit:4.11"
+}
+
 sourceSets {
     main {
         java {
             srcDir 'wallet'
             srcDir 'chain'
+            srcDir 'example'
+        }
+    }
+    test {
+        java {
             srcDir 'test'
         }
     }
 }
 
-findbugsMain.finalizedBy checkFindBugsReport
+test {
+    testLogging {
+        exceptionFormat = 'full'
+        events "passed", "skipped", "failed"
+    }
 
+    onOutput { descriptor, event ->
+        logger.lifecycle(event.message)
+   }
+}
+
+findbugsMain.finalizedBy checkFindBugsReportMain
+findbugsTest.finalizedBy checkFindBugsReportTest

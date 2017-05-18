@@ -1,5 +1,6 @@
 import java.io.File;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -10,10 +11,11 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 
+import java.security.NoSuchAlgorithmException;
+
 import static java.lang.System.exit;
 
 public class WalletMain extends Application {
-    WalletOrchestrator walletOrchestrator;
     Stage launcherWindow;
     Stage transactionWindow;
     Stage newTransactionWindow;
@@ -24,9 +26,6 @@ public class WalletMain extends Application {
 
     public void start(Stage applicationStart) {
         console = new Console();
-
-        // Set up the Wallet Orchestrator Class
-        walletOrchestrator = new WalletOrchestrator(console);
 
         // Launch Main menu
         launcherWindow();
@@ -58,7 +57,7 @@ public class WalletMain extends Application {
         file.setStyle("-fx-mark-color: transparent; -fx-focused-mark-color: transparent");
 
         // Set Field Labels
-        hostname.setText("https://localhost:3002/transaction");
+        hostname.setText("localhost");
         keystore.setText("...");
         connect.setText("Connect");
         fileChooser.setTitle("Open Client Keystore File");
@@ -112,7 +111,15 @@ public class WalletMain extends Application {
 
         connect.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                walletOrchestrator.connect(hostname.getText().trim(), keystoreFile.getText().trim(), keystorePassword.getText().trim());
+                WalletConnectionLoggingWrapper orchestrator = new WalletConnectionLoggingWrapper(
+                    console,
+                    hostname.getText().trim(),
+                    keystoreFile.getText().trim(),
+                    keystorePassword.getText().trim()
+                );
+
+                orchestrator.ascertainBalance(0);
+                orchestrator.transaction();
             }
         });
 
@@ -133,13 +140,13 @@ public class WalletMain extends Application {
 
         menuExit.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                exit(1);
+                Platform.exit();
             }
         });
 
         launcherWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
             public void handle(WindowEvent e) {
-                exit(1);
+                Platform.exit();
             }
         });
     }
@@ -187,7 +194,7 @@ public class WalletMain extends Application {
         GridPane.setMargin(newTransaction, new Insets(5, 5, 0, 5));
 
         // Transaction Window Properties
-        Stage transactionWindow = new Stage();
+        transactionWindow = new Stage();
         transactionWindow.setTitle("My Transactions");
         transactionWindow.setScene(new Scene(transactionScreen, 400, 455));
         transactionWindow.setResizable(false);
@@ -214,13 +221,13 @@ public class WalletMain extends Application {
 
         menuExit.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                exit(1);
+                Platform.exit();
             }
         });
 
         transactionWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
             public void handle(WindowEvent e) {
-                exit(1);
+                Platform.exit();
             }
         });
     }
@@ -253,7 +260,7 @@ public class WalletMain extends Application {
         GridPane.setMargin(makeTransaction, new Insets(5, 0, 5, 5));
 
         // Transaction Window Properties
-        Stage newTransactionWindow = new Stage();
+        newTransactionWindow = new Stage();
         newTransactionWindow.setTitle("New Transaction");
         newTransactionWindow.setScene(new Scene(newTransactionScreen, 280, 110));
         newTransactionWindow.setResizable(false);

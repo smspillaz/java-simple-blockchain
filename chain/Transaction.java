@@ -29,4 +29,8 @@ public class Transaction {
 
         return digest.digest(bytes);
     }
+
+    public String toString() {
+        return src + " -(" + amount +")> " + dst + " (sig: " + signature + ")";
+    }
 }
