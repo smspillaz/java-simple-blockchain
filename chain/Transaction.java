@@ -74,10 +74,9 @@ public class Transaction {
         catch(Exception e){
             Globals.log("Could not create nonce!"); // TODO abort from here
         }
-}
     }
 
-    //public String toString() {
-      //  return src + " -(" + amount +")> " + dst + " (sig: " + signature + ")";
-    //}
+    public String toString() {
+        return src + " -(" + amount +")> " + dst + " (sig: " + signature + ") " + nonce;
+    }
 }
