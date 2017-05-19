@@ -25,14 +25,23 @@ import java.security.MessageDigest;
 public class Blockchain {
     private List<Block> chain;
     private  MessageDigest digest;
-    public byte[] mkHash(byte[] message, int offset, int len){
+    public static byte[] mkHash(byte[] message, int offset, int len) {
+        /* Rather surprisingly, MessageDigest.getInstance does not do any
+         * caching of the algorithm instance and stores its own private data.
+         *
+         * However, the evidence seems to me that it is cheaper to just
+         * create a new instance every time we need to do some hashing.
+         *
+         * See: http://stackoverflow.com/questions/13913075/to-pool-or-not-to-pool-java-crypto-service-providers
+         */
+        MessageDigest digest = MessageDigest.getInstance(Globals.hashAlg);
         try {
-            digest.digest(message, offset, len);
+            return digest.digest(message, offset, len);
+        } catch (DigestException e){
+            // TODO sort out proper logging and error handling
         }
-        catch(DigestException e){
-            ; // TODO sort out proper logging and error handling
-        }
-        return digest.digest();
+
+        return null;
     }
 
     public Blockchain() throws NoSuchAlgorithmException {
