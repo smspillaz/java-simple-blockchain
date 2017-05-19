@@ -62,14 +62,12 @@ class WalletConnectionLoggingWrapper {
         }
     }
 
-    public void ascertainBalance(int walletID) {
+    TransactionHistory history(int walletID) {
         if (this.wallet != null) {
             logger.write("Ascertaining balance from blockchain");
 
             try {
-                Blockchain chain = this.wallet.fetchBlockchain();
-                logger.write("Your balance is " +
-                             WalletOrchestrator.ascertainBalanceFromChain(walletID, chain, logger));
+                return wallet.history(walletID);
             } catch (Blockchain.IntegrityCheckFailedException e) {
                 logger.write("Blockchain integrity check failed: " + e.toString());
             } catch (Blockchain.WalkFailedException e) {
@@ -82,5 +80,7 @@ class WalletConnectionLoggingWrapper {
                 logger.write(e.toString());
             }
         }
+
+        return null;
     }
 }

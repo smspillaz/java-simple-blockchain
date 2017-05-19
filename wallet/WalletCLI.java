@@ -61,7 +61,7 @@ public class WalletCLI {
                                                                        arguments.keystore,
                                                                        System.getenv("KEYSTORE_PASSWORD"));
 
-        System.out.println("Current balance: " + walletOrchestrator.ascertainBalance(0));
+        System.out.println("Current balance: " + walletOrchestrator.history(0).balance());
         System.out.println(walletOrchestrator.transaction());
     }
 }

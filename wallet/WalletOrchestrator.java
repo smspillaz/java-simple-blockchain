@@ -89,15 +89,15 @@ public class WalletOrchestrator {
         return Blockchain.deserialise(request("download_blockchain"));
     }
 
-    public static int ascertainBalanceFromChain(int walletID, Blockchain chain, Logger logger) throws Blockchain.WalkFailedException {
-        return new WalletBlockchainConsumer(chain).ascertainBalance(walletID, logger);
+    public static TransactionHistory transactionHistoryFromChain(int walletID, Blockchain chain) throws Blockchain.WalkFailedException {
+        return new WalletBlockchainConsumer(chain).transactionHistory(walletID);
     }
 
-    public int ascertainBalance(int walletID) throws Blockchain.WalkFailedException,
-                                                     MalformedURLException,
-                                                     IOException,
-                                                     NoSuchAlgorithmException,
-                                                     Blockchain.IntegrityCheckFailedException {
-        return ascertainBalanceFromChain(walletID, fetchBlockchain(), null);
+    public TransactionHistory history(int walletID) throws Blockchain.WalkFailedException,
+                                                           MalformedURLException,
+                                                           IOException,
+                                                           NoSuchAlgorithmException,
+                                                           Blockchain.IntegrityCheckFailedException {
+        return transactionHistoryFromChain(walletID, fetchBlockchain());
     }
 }

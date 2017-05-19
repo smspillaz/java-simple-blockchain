@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 
 public class WalletBlockchainConsumer {
@@ -9,50 +10,35 @@ public class WalletBlockchainConsumer {
         this.chain = chain;
     }
 
-    public static class AccumulatingBalanceTransactionObserver implements Ledger.TransactionObserver {
-        public int balance;
+    public static class TransactionHistoryObserver implements Ledger.TransactionObserver {
         private int walletID;
+        private List<Transaction> transactions;
 
-        AccumulatingBalanceTransactionObserver(int walletID) {
-            this.balance = 0;
+        public TransactionHistoryObserver(int walletID) {
             this.walletID = walletID;
+            this.transactions = new LinkedList<Transaction>();
         }
 
         @Override
         public void consume(Transaction transaction) {
-            if (transaction.dst == walletID) {
-                balance += transaction.amount;
-            } else if (transaction.src == walletID) {
-                balance -= transaction.amount;
+            if (transaction.src == walletID ||
+                transaction.dst == walletID) {
+                this.transactions.add(transaction);
             }
         }
-    }
 
-    public static class LoggingTransactionObserver implements Ledger.TransactionObserver {
-        Logger console;
-
-        LoggingTransactionObserver(Logger console) {
-            this.console = console;
-        }
-
-        @Override
-        public void consume(Transaction transaction) {
-            console.write(transaction.toString());
+        public TransactionHistory history() {
+            return new TransactionHistory(walletID, transactions);
         }
     }
 
-    public int ascertainBalance(int walletID, Logger transactionLogger) throws Blockchain.WalkFailedException {
-        AccumulatingBalanceTransactionObserver observer = new AccumulatingBalanceTransactionObserver(walletID);
-        List<Ledger.TransactionObserver> observers = new ArrayList<Ledger.TransactionObserver>() {{
+    public TransactionHistory transactionHistory(int walletID) throws Blockchain.WalkFailedException {
+        TransactionHistoryObserver observer = new TransactionHistoryObserver(walletID);
+
+        new Ledger(chain, new LinkedList<Ledger.TransactionObserver>() {{
             add(observer);
-        }};
-
-        if (transactionLogger != null) {
-            observers.add(new LoggingTransactionObserver(transactionLogger));
-        }
-
-        new Ledger(chain, observers);
-        return observer.balance;
+        }});
+        return observer.history();
     }
 
 }
