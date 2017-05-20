@@ -29,8 +29,9 @@ public class Globals {
     public static int nBytesNonceOffset=580;
     public static int nBytesBlockchainHashOffset = 584;
 
-
-    public static long maxValNonce = (1 << nBytesNonce) - 1;
+    /* Need to subtract two here from the shift amount since long is signed.
+     * Then subtract 1, so that we get a binary string of all 1s at 2^31 */
+    public static long maxValNonce = (1 << ((nBytesNonce * 8) - 2)) - 1;
 
     public static String hashAlg = "SHA-256";
 
