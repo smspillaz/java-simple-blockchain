@@ -11,6 +11,8 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 
+import javax.xml.bind.DatatypeConverter;
+
 import java.security.NoSuchAlgorithmException;
 
 import static java.lang.System.exit;
@@ -365,7 +367,10 @@ public class WalletMain extends Application {
     // Load a list of users transactions & currency on the transaction window
     private void fetchWindowData(WalletConnectionLoggingWrapper orchestrator) {
         /* Get the transaction log for our wallet ID (hardcoded to 0) */
-        TransactionHistory history = orchestrator.history(0);
+        TransactionHistory history = orchestrator.history(
+            DatatypeConverter.printHexBinary(Globals.convertToByteArray(0L,
+                                                                        Globals.nBytesKeys))
+        );
 
         if (history == null) {
             console.write("The BlockChain could not be downloaded. Please reconnect.");

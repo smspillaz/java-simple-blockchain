@@ -1,11 +1,13 @@
 import java.util.List;
 import java.util.LinkedList;
 
+import javax.xml.bind.DatatypeConverter;
+
 public class TransactionHistory {
     private List<Transaction> transactions;
-    private int walletID;
+    private String walletID;
 
-    public TransactionHistory(int walletID, List<Transaction> transactions) {
+    public TransactionHistory(String walletID, List<Transaction> transactions) {
         this.transactions = transactions;
         this.walletID = walletID;
     }
@@ -26,9 +28,9 @@ public class TransactionHistory {
         for (Transaction transaction : transactions) {
             /* Handle the edge case where the genesis node gives
              * coins to itself */
-            if (transaction.dst == walletID) {
+            if (DatatypeConverter.printHexBinary(transaction.rPubKey) == walletID) {
                 balance += transaction.amount;
-            } else if (transaction.src == walletID) {
+            } else if (DatatypeConverter.printHexBinary(transaction.sPubKey) == walletID) {
                 balance -= transaction.amount;
             }
         }

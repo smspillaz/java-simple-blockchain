@@ -7,6 +7,8 @@ import java.security.UnrecoverableKeyException;
 
 import javafx.application.Platform;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -61,7 +63,12 @@ public class WalletCLI {
                                                                        arguments.keystore,
                                                                        System.getenv("KEYSTORE_PASSWORD"));
 
-        System.out.println("Current balance: " + walletOrchestrator.history(0).balance());
+        TransactionHistory history = walletOrchestrator.history(
+            DatatypeConverter.printHexBinary(Globals.convertToByteArray(0L,
+                                                                        Globals.nBytesKeys))
+        );
+
+        System.out.println("Current balance: " + history.balance());
         System.out.println(walletOrchestrator.transaction());
     }
 }

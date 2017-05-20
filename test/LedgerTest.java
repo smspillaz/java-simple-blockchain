@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
-public class LedgerTest {
+public class LedgerTest extends TestBase {
   static final String expectedGenesisHash = "76B9F3F69B12FCD6D6731ACC8B53B98118D17D1FFDF726C939DCB06DD6D7F58E";
 
   @Test
@@ -33,7 +33,7 @@ public class LedgerTest {
 
     /* Try to blindly append an invalid transaction to the chain, i.e, public
      * key (1) spending money that it doesn't have */
-    chain.appendTransaction(new Transaction(1, 0, 20, 0));
+    chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(1, 0, 20, 0));
 
     /* Now we create a new ledger from this chain.
      * It should throw an exception, because the chain transactions are
@@ -48,7 +48,7 @@ public class LedgerTest {
     Blockchain chain = new Blockchain();
 
     /* Try to blindly append a negative transaction. This wouldn't be allowed */
-    chain.appendTransaction(new Transaction(0, 1, -20, 0));
+    chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(0, 1, -20, 0));
 
     /* Now we create a new ledger from this chain.
      * It should throw an exception, because the chain transactions are
@@ -68,7 +68,7 @@ public class LedgerTest {
      * just silently reject it (it will return false so that we could
      * potentially log that the transaction failed, but it won't throw
      * an error) */
-    assertThat(ledger.appendTransaction(new Transaction(1, 0, 20, 0)),
+    assertThat(ledger.appendTransaction(convenienceTransactionFromIntegerKeys(1, 0, 20, 0)),
                equalTo(false));
   }
 
@@ -84,7 +84,7 @@ public class LedgerTest {
      * just silently reject it and the chain should not be modified, eg
      * the tip hash of both cases should be the same */
     byte[] tip = chain.tipHash();
-    ledger.appendTransaction(new Transaction(1, 0, 20, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(1, 0, 20, 0));
     assertThat(chain.tipHash(), equalTo(tip));
   }
 
@@ -96,7 +96,7 @@ public class LedgerTest {
     Ledger ledger = new Ledger(chain);
 
     /* Whatever money people have, reverse transactions are not allowed */
-    assertThat(ledger.appendTransaction(new Transaction(0, 1, -20, 0)),
+    assertThat(ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, -20, 0)),
                equalTo(false));
   }
 
@@ -109,7 +109,7 @@ public class LedgerTest {
 
     /* Append a valid transation to the chain. It should return true
      * since this transaction was all fine */
-    assertThat(ledger.appendTransaction(new Transaction(0, 1, 20, 0)),
+    assertThat(ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0)),
                equalTo(true));
   }
 
@@ -123,7 +123,7 @@ public class LedgerTest {
     /* Append a valid transation to the chain. The tip hash should be
      * changed on the chain */
     byte[] tip = chain.tipHash();
-    ledger.appendTransaction(new Transaction(0, 1, 20, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
     assertThat(chain.tipHash(), not(tip));
   }
 
@@ -137,8 +137,8 @@ public class LedgerTest {
     /* Append a valid transation to the chain, then reverse it. The hashes
      * should not be restored to their prior position */
     byte[] tip = chain.tipHash();
-    ledger.appendTransaction(new Transaction(0, 1, 20, 0));
-    ledger.appendTransaction(new Transaction(1, 0, 20, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(1, 0, 20, 0));
     assertThat(chain.tipHash(), not(tip));
   }
 }

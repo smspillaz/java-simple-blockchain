@@ -14,8 +14,8 @@ import org.junit.runners.Parameterized;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class BlockchainTest {
-  static final String expectedGenesisHash = "76B9F3F69B12FCD6D6731ACC8B53B98118D17D1FFDF726C939DCB06DD6D7F58E";
+public class BlockchainTest extends TestBase {
+  static final String expectedGenesisHash = "8A47E6B9A38BA3E928883E20CA9CCB5B22887C062760A21072E51F55B67FEE00";
 
   @Test
   public void testBlockchainInitialConstruction() throws NoSuchAlgorithmException,
@@ -29,9 +29,9 @@ public class BlockchainTest {
   public void testAppendNewTransaction() throws NoSuchAlgorithmException,
                                                 Block.MiningException {
     Blockchain chain = new Blockchain();
-    chain.appendTransaction(new Transaction(0, 1, 25, 0));
+    chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(0, 1, 25, 0));
 
-    final String execeptedTransactionHash = "8D8596DC7C682499ADAF59A2463DFCDD760F3AAD980BFD22FDD8742B3FCB393B";
+    final String execeptedTransactionHash = "F040F3C16453938B3725539808AA818B12FCABC0C7F43A35F59A2EF750FE4C00";
 
     assertThat(DatatypeConverter.printHexBinary(chain.tipHash()),
                equalTo(execeptedTransactionHash));
@@ -62,9 +62,9 @@ public class BlockchainTest {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
-    ledger.appendTransaction(new Transaction(0, 1, 20, 0));
-    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
-    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
 
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 
@@ -104,9 +104,9 @@ public class BlockchainTest {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
-    ledger.appendTransaction(new Transaction(0, 1, 20, 0));
-    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
-    ledger.appendTransaction(new Transaction(0, 1, 10, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
+    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
 
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {

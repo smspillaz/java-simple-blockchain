@@ -62,7 +62,7 @@ class WalletConnectionLoggingWrapper {
         }
     }
 
-    TransactionHistory history(int walletID) {
+    TransactionHistory history(String walletID) {
         if (this.wallet != null) {
             logger.write("Ascertaining balance from blockchain");
 
