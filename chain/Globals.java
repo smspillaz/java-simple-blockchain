@@ -57,7 +57,7 @@ public class Globals {
         return n;
     }
 
-    public static <E> byte[] convertToByteArray(E l, int nBytes){
+    public static byte[] convertToByteArray(long l, int nBytes){
         byte[] ba = new byte[nBytes];
         for(int i = 0; i < nBytes; i++)
             ba[--nBytes] = (byte) (l & 0xFF);
