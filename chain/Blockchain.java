@@ -24,8 +24,8 @@ import java.security.MessageDigest;
 
 public class Blockchain {
     private List<Block> chain;
-    private  MessageDigest digest;
-    public static byte[] mkHash(byte[] message, int offset, int len) {
+
+    public static byte[] mkHash(byte[] message, int offset, int len) throws NoSuchAlgorithmException {
         /* Rather surprisingly, MessageDigest.getInstance does not do any
          * caching of the algorithm instance and stores its own private data.
          *
@@ -35,13 +35,27 @@ public class Blockchain {
          * See: http://stackoverflow.com/questions/13913075/to-pool-or-not-to-pool-java-crypto-service-providers
          */
         MessageDigest digest = MessageDigest.getInstance(Globals.hashAlg);
-        try {
-            return digest.digest(message, offset, len);
-        } catch (DigestException e){
-            // TODO sort out proper logging and error handling
+
+        /* MessageDigest.digest actually writes into an output buffer, the
+         * signature byte[], int, int surprisingly does not start hashing
+         * offset bytes in. So in order to get our (apparently) desired
+         * behaviour here we actually need to copy the array from
+         * the given offset into a new one with a specified length and then
+         * hash that.
+         *
+         * Now, if the incoming message length is the same as the
+         * desired length and there is no offset, we can just use the
+         * incoming message directly */
+        byte buf[];
+
+        if (message.length == len && offset == 0) {
+            buf = message;
+        } else {
+            buf = new byte[len];
+            System.arraycopy(message, offset, buf, 0, len);
         }
 
-        return null;
+        return digest.digest(buf);
     }
 
     public Blockchain() throws NoSuchAlgorithmException {
