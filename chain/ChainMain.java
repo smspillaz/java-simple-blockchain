@@ -65,7 +65,8 @@ public class ChainMain {
     }
 
     public static Blockchain fetchInitialBlockchain(String host) throws NoSuchAlgorithmException,
-                                                                        Blockchain.WalkFailedException {
+                                                                        Blockchain.WalkFailedException,
+                                                                        Block.MiningException {
         if (host == null) {
             System.out.println("No host specified to download blockchain from, assuming this is the gensis node");
             return new Blockchain();
@@ -132,13 +133,18 @@ public class ChainMain {
                                             int rehashFrom) {
         try {
             chain.walk(new Blockchain.BlockEnumerator() {
-                public void consume(int index, Block block) {
+                public void consume(int index, Block block) throws Blockchain.WalkFailedException {
                     if (index >= rehashFrom) {
                         try {
+                            int nonce = Block.mineNonce(block.payload,
+                                                        chain.parentBlockHash(index));
+                            block.nonce = nonce;
                             block.hash = block.computeContentHash(chain.parentBlockHash(index));
                         } catch (NoSuchAlgorithmException e) {
                             System.err.println(e.getMessage());
                             Platform.exit();
+                        } catch (Block.MiningException e) {
+                            throw new Blockchain.WalkFailedException(e.getMessage());
                         }
                     }
                 }
@@ -150,7 +156,8 @@ public class ChainMain {
 
     public static void performChainCorruption(Blockchain chain,
                                               Ledger ledger,
-                                              String op) throws Blockchain.WalkFailedException {
+                                              String op) throws Blockchain.WalkFailedException,
+                                                                Block.MiningException {
         /* Chosen by fair dice roll, guaranteed to be random */
         int random = 2;
         int indexToModify = random % chain.length();
@@ -164,17 +171,29 @@ public class ChainMain {
                         /* Modify a transaction in flight, for instance, by subtracting
                          * one from the amount */
                         msg.append("subtracting 1 from the transaction amount");
-                        block.getTransaction().amount -= 1;
+                        block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
+                            public void mutate(Transaction transaction) {
+                                transaction.amount -= 1;
+                            }
+                        });
                         break;
                     case "INVALID_TX":
                         /* Make a transaction negative */
                         msg.append("negating the transaction amount");
-                        block.getTransaction().amount *= -1;
+                        block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
+                            public void mutate(Transaction transaction) {
+                                transaction.amount *= 1;
+                            }
+                        });
                         rehashChainFromIndex(chain, index);
                         break;
                     case "BAD_SIGNATURE":
                         msg.append("modifying the transaction amount but rehashing the block (and all children)");
-                        block.getTransaction().amount -= 1;
+                        block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
+                            public void mutate(Transaction transaction) {
+                                transaction.amount -= 1;
+                            }
+                        });
                         rehashChainFromIndex(chain, index);
                         break;
                     case "BAD_POW":
@@ -197,7 +216,8 @@ public class ChainMain {
                                                   KeyManagementException,
                                                   CertificateException,
                                                   UnrecoverableKeyException,
-                                                  Blockchain.WalkFailedException {
+                                                  Blockchain.WalkFailedException,
+                                                  Block.MiningException {
         Arguments arguments = new Arguments(args);
         HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
         SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(arguments.keystore),

@@ -57,7 +57,7 @@ public class Ledger {
 
         chain.walk(new Blockchain.BlockEnumerator() {
             public void consume(int index, Block block) throws Blockchain.WalkFailedException {
-                Transaction transaction = block.getTransaction();
+                Transaction transaction = new Transaction(block.payload);
 
                 /* If the map doesn't contain an address, then add it with
                  * a balance of zero chriscoins */
@@ -156,7 +156,14 @@ public class Ledger {
             return false;
         }
 
-        chain.appendTransaction(transaction);
+        try {
+            chain.appendPayload(transaction.serialize());
+        } catch (Block.MiningException exception) {
+            logTransactionRejectionFailure(transaction,
+                                           "could not find a valid solution to " +
+                                           "mine a block, sorry");
+            return false;
+        }
 
         /* Transaction would have been successful. Allow this transaction
          * on the chain and update our view */

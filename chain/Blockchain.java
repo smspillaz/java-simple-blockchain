@@ -58,13 +58,24 @@ public class Blockchain {
         return digest.digest(buf);
     }
 
-    public Blockchain() throws NoSuchAlgorithmException {
-        digest = MessageDigest.getInstance(Globals.hashAlg); // already throws it's own NoSuchAlgorithmException
+    public Blockchain() throws NoSuchAlgorithmException,
+                               Block.MiningException {
         chain = new ArrayList<Block>();
         /* On the construction of the blockchain, create a genesis node.
-         * Note that right now, we are not signing transactions */
-        chain.add(new Block(new Transaction(0, 0, 50, 0),
-                            null));
+         * Note that right now, we are not signing transactions
+         *
+         * NOTE: This genesis node payload should really be injected by the
+         * consumer and we should just disable the no-arg constructor */
+        byte[] payload = new Transaction(Globals.convertToByteArray(0L,
+                                                                    Globals.nBytesKeys),
+                                         Globals.convertToByteArray(0L,
+                                                                    Globals.nBytesKeys),
+                                         50,
+                                         Globals.convertToByteArray(0L,
+                                                                    Globals.nBytesSig)).serialize();
+
+        /* This will auto-mine the nonce and add a new block with this payload */
+        appendPayload(payload);
     }
 
     public static class WalkFailedException extends Exception {
@@ -77,7 +88,7 @@ public class Blockchain {
     public static class IntegrityCheckFailedException extends Exception {
         public IntegrityCheckFailedException(int index, Block block, String msg) {
             super("Blockchain integrity check failed at block " + index
-                  + " (" + block.getTransaction() + "). " + msg);
+                  + " (" + block + "). " + msg);
         }
     }
 
@@ -146,14 +157,20 @@ public class Blockchain {
     }
 
     /**
-     * Appends a new transaction to the chain by creating a new block for it
+     * Appends a new payload to the chain by creating a new block for it
      * with a reference to the child-most block as its parent. Note that
-     * this does absolutely no validation to check if the transaction was
+     * this does absolutely no validation to check if the payload was
      * valid - you will need to validate this before you append the block
      * to the chain.
+     *
+     * Note that this method will attempt to mine the block (by computing
+     * its nonce) before appending it to the chain
      */
-    public void appendTransaction(Transaction transaction) throws NoSuchAlgorithmException {
-        chain.add(new Block(transaction, parentBlockHash(chain.size())));
+    public void appendPayload(byte[] payload) throws NoSuchAlgorithmException,
+                                                     Block.MiningException {
+        byte[] parentHash = parentBlockHash(chain.size());
+        int nonce = Block.mineNonce(payload, parentHash);
+        chain.add(new Block(payload, nonce, parentHash));
     }
 
     /**

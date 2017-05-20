@@ -18,14 +18,16 @@ public class BlockchainTest {
   static final String expectedGenesisHash = "76B9F3F69B12FCD6D6731ACC8B53B98118D17D1FFDF726C939DCB06DD6D7F58E";
 
   @Test
-  public void testBlockchainInitialConstruction() throws NoSuchAlgorithmException {
+  public void testBlockchainInitialConstruction() throws NoSuchAlgorithmException,
+                                                         Block.MiningException {
     Blockchain chain = new Blockchain();
     assertThat(DatatypeConverter.printHexBinary(chain.tipHash()),
                equalTo(BlockchainTest.expectedGenesisHash));
   }
 
   @Test
-  public void testAppendNewTransaction() throws NoSuchAlgorithmException {
+  public void testAppendNewTransaction() throws NoSuchAlgorithmException,
+                                                Block.MiningException {
     Blockchain chain = new Blockchain();
     chain.appendTransaction(new Transaction(0, 1, 25, 0));
 
@@ -36,14 +38,16 @@ public class BlockchainTest {
   }
 
   @Test
-  public void testSerialiseToJSON() throws NoSuchAlgorithmException {
+  public void testSerialiseToJSON() throws NoSuchAlgorithmException,
+                                           Block.MiningException {
     Blockchain chain = new Blockchain();
     chain.serialise();
   }
 
   @Test
   public void testDeserialiseFromJSON() throws NoSuchAlgorithmException,
-                                               Blockchain.IntegrityCheckFailedException {
+                                               Blockchain.IntegrityCheckFailedException,
+                                               Block.MiningException {
     Blockchain chain = new Blockchain();
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 
@@ -53,7 +57,8 @@ public class BlockchainTest {
   @Test
   public void testDeserialiseManyBlocksFromJSON() throws NoSuchAlgorithmException,
                                                          Blockchain.IntegrityCheckFailedException,
-                                                         Blockchain.WalkFailedException {
+                                                         Blockchain.WalkFailedException,
+                                                         Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
@@ -69,7 +74,8 @@ public class BlockchainTest {
   @Test(expected=Blockchain.IntegrityCheckFailedException.class)
   public void testIntegrityCheckFailsWhenModifyingHashes() throws NoSuchAlgorithmException,
                                                                   Blockchain.IntegrityCheckFailedException,
-                                                                  Blockchain.WalkFailedException {
+                                                                  Blockchain.WalkFailedException,
+                                                                  Block.MiningException {
     Blockchain chain = new Blockchain();
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {
@@ -77,8 +83,12 @@ public class BlockchainTest {
              * hash will stay as is and this should fail validation. In this
              * scenario a malicious chain makes another wallet the genesis
              * node */
-            block.getTransaction().src = 1;
-            block.getTransaction().dst = 1;
+            block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
+                public void mutate(Transaction transaction) {
+                    transaction.sPubKey = convenienceLongToPubKey(1L);
+                    transaction.rPubKey = transaction.sPubKey;
+                }
+            });
         }
     });
 
@@ -88,8 +98,9 @@ public class BlockchainTest {
 
   @Test(expected=Blockchain.IntegrityCheckFailedException.class)
   public void testIntegrityCheckFailsWhenModifyingCenterHash() throws NoSuchAlgorithmException,
-                                                                  Blockchain.IntegrityCheckFailedException,
-                                                                  Blockchain.WalkFailedException {
+                                                                      Blockchain.IntegrityCheckFailedException,
+                                                                      Blockchain.WalkFailedException,
+                                                                      Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
@@ -101,8 +112,12 @@ public class BlockchainTest {
         public void consume(int index, Block block) {
             /* Be a little bit evil and only modify the second transaction */
             if (index == 1) {
-                block.getTransaction().src = 1;
-                block.getTransaction().dst = 0;
+                block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
+                    public void mutate(Transaction transaction) {
+                        transaction.sPubKey = convenienceLongToPubKey(1L);
+                        transaction.rPubKey = convenienceLongToPubKey(0L);
+                    }
+                });
             }
         }
     });

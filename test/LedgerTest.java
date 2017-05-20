@@ -19,14 +19,16 @@ public class LedgerTest {
 
   @Test
   public void testLedgerConstruction() throws NoSuchAlgorithmException,
-                                              Blockchain.WalkFailedException {
+                                              Blockchain.WalkFailedException,
+                                              Block.MiningException {
     Blockchain chain = new Blockchain();
     new Ledger(chain);
   }
 
   @Test(expected=Blockchain.WalkFailedException.class)
   public void testLedgerFailedValidation() throws NoSuchAlgorithmException,
-                                                  Blockchain.WalkFailedException {
+                                                  Blockchain.WalkFailedException,
+                                                  Block.MiningException {
     Blockchain chain = new Blockchain();
 
     /* Try to blindly append an invalid transaction to the chain, i.e, public
@@ -41,7 +43,8 @@ public class LedgerTest {
 
   @Test(expected=Blockchain.WalkFailedException.class)
   public void testLedgerFailedValidationNegativeTransaction() throws NoSuchAlgorithmException,
-                                                                     Blockchain.WalkFailedException {
+                                                                     Blockchain.WalkFailedException,
+                                                                     Block.MiningException {
     Blockchain chain = new Blockchain();
 
     /* Try to blindly append a negative transaction. This wouldn't be allowed */
@@ -55,7 +58,8 @@ public class LedgerTest {
 
   @Test
   public void testLedgerAddBadTransaction() throws NoSuchAlgorithmException,
-                                                   Blockchain.WalkFailedException {
+                                                   Blockchain.WalkFailedException,
+                                                   Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain);
 
@@ -70,7 +74,8 @@ public class LedgerTest {
 
   @Test
   public void testLedgerAddBadTransactionNoModifyChain() throws NoSuchAlgorithmException,
-                                                         Blockchain.WalkFailedException {
+                                                         Blockchain.WalkFailedException,
+                                                         Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain);
 
@@ -85,7 +90,8 @@ public class LedgerTest {
 
   @Test
   public void testLedgerAddNegativeTransaction() throws NoSuchAlgorithmException,
-                                                        Blockchain.WalkFailedException {
+                                                        Blockchain.WalkFailedException,
+                                                        Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain);
 
@@ -96,7 +102,8 @@ public class LedgerTest {
 
   @Test
   public void testLedgerAddGoodTransaction() throws NoSuchAlgorithmException,
-                                                    Blockchain.WalkFailedException {
+                                                    Blockchain.WalkFailedException,
+                                                    Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain);
 
@@ -108,7 +115,8 @@ public class LedgerTest {
 
   @Test
   public void testLedgerAddGoodTransactionModifyChain() throws NoSuchAlgorithmException,
-                                                               Blockchain.WalkFailedException {
+                                                               Blockchain.WalkFailedException,
+                                                               Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain);
 
@@ -121,7 +129,8 @@ public class LedgerTest {
 
   @Test
   public void testLedgerAddGoodTransactionReverseModifyChain() throws NoSuchAlgorithmException,
-                                                                     Blockchain.WalkFailedException {
+                                                                      Blockchain.WalkFailedException,
+                                                                      Block.MiningException {
     Blockchain chain = new Blockchain();
     Ledger ledger = new Ledger(chain);
 
