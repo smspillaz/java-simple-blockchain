@@ -127,6 +127,11 @@ public class Ledger {
         this.ownership = Ledger.walkTransactions(this.chain, observers);
     }
 
+    public static void logTransactionRejectionFailure(Transaction transaction,
+                                                      String reason) {
+        System.out.println("[chain] Rejecting transaction " + transaction + ": " + reason);
+    }
+
     /* Attempt to append a transaction to the underlying blockchain. If this
      * process fails, the transaction is just silently rejected - when the network
      * next downloads the transaction ledger it is as if it never took place */
@@ -138,11 +143,16 @@ public class Ledger {
 
         /* Transaction must have an amount */
         if (transaction.amount <= 0) {
+            logTransactionRejectionFailure(transaction,
+                                           "amount is less than or equal to zero");
             return false;
         }
 
         int srcCoins = ownership.get(transaction.src);
         if (srcCoins < transaction.amount) {
+            logTransactionRejectionFailure(transaction,
+                                           "source does not have requisite coins, " +
+                                           "only has " + srcCoins);
             return false;
         }
 
