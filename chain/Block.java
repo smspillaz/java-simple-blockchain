@@ -32,7 +32,7 @@ public class Block {
             new byte[Globals.nBytesNonce]
         });
 
-        // cycle through all 2 ^ 64 values until loops back to 0
+        // cycle through all 2 ^ 630 values until loops back to 0
         for (int nonce = 0; nonce <= Globals.maxValNonce; nonce++) {
             System.arraycopy(Globals.convertToByteArray((long) nonce, Globals.nBytesBlockChainHash),
                              0,
