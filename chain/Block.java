@@ -19,6 +19,41 @@ public class Block {
         return transaction;
     }
 
+    public static class MiningException extends Exception {
+        public MiningException() {
+            super("Ran out of numbers whilst mining");
+        }
+    }
+
+    public static int mineNonce(byte[] payload,
+                                byte[] parentHash) throws NoSuchAlgorithmException,
+                                                          MiningException {
+        parentHash = parentHash != null ? parentHash : new byte[0];
+        byte[] blockContents = Globals.concatByteArrays(new byte[][] {
+            parentHash,
+            payload,
+            new byte[Globals.nBytesNonce]
+        });
+
+        // cycle through all 2 ^ 64 values until loops back to 0
+        for (int nonce = 0; nonce <= Globals.maxValNonce; nonce++) {
+            System.arraycopy(Globals.convertToByteArray((long) nonce, Globals.nBytesBlockChainHash),
+                             0,
+                             blockContents,
+                             payload.length + parentHash.length,
+                             Globals.nBytesBlockChainHash);
+
+            byte[] blockChainHash = Blockchain.mkHash(blockContents, 0, blockContents.length);
+
+            /* First byte is all zeroes, we have our nonce */
+            if (blockChainHash[blockChainHash.length - 1] == 0) {
+                return nonce;
+            }
+        }
+
+        throw new MiningException();
+    }
+
     public byte[] computeContentHash(byte[] parentHash) throws NoSuchAlgorithmException {
         /* Compute a hash based on the transaction itself
          * and the parent block.
