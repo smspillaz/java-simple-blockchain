@@ -97,6 +97,29 @@ public class BlockchainTest extends TestBase {
   }
 
   @Test(expected=Blockchain.IntegrityCheckFailedException.class)
+  public void testIntegrityCheckFailedWhenBlockNotMined() throws NoSuchAlgorithmException,
+                                                                 Blockchain.IntegrityCheckFailedException,
+                                                                 Blockchain.WalkFailedException,
+                                                                 Block.MiningException {
+    Blockchain chain = new Blockchain();
+    chain.walk(new Blockchain.BlockEnumerator() {
+        public void consume(int index, Block block) {
+            /* Change the nonce to something that doesn't prove that we did
+             * the work required to mine this block and then re-hash the block */
+            block.nonce = 0;
+            try {
+              block.hash = block.computeContentHash(chain.parentBlockHash(index));
+            } catch (NoSuchAlgorithmException e) {
+              System.err.println(e.getMessage());
+            }
+        }
+    });
+
+    /* This should throw an integrity check failure */
+    Blockchain.deserialise(chain.serialise());
+  }
+
+  @Test(expected=Blockchain.IntegrityCheckFailedException.class)
   public void testIntegrityCheckFailsWhenModifyingCenterHash() throws NoSuchAlgorithmException,
                                                                       Blockchain.IntegrityCheckFailedException,
                                                                       Blockchain.WalkFailedException,
