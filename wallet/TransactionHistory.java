@@ -28,9 +28,9 @@ public class TransactionHistory {
         for (Transaction transaction : transactions) {
             /* Handle the edge case where the genesis node gives
              * coins to itself */
-            if (DatatypeConverter.printHexBinary(transaction.rPubKey) == walletID) {
+            if (DatatypeConverter.printHexBinary(transaction.rPubKey).equals(walletID)) {
                 balance += transaction.amount;
-            } else if (DatatypeConverter.printHexBinary(transaction.sPubKey) == walletID) {
+            } else if (DatatypeConverter.printHexBinary(transaction.sPubKey).equals(walletID)) {
                 balance -= transaction.amount;
             }
         }

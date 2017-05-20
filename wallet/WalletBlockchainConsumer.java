@@ -23,8 +23,8 @@ public class WalletBlockchainConsumer {
 
         @Override
         public void consume(Transaction transaction) {
-            if (DatatypeConverter.printHexBinary(transaction.sPubKey) == walletID ||
-                DatatypeConverter.printHexBinary(transaction.rPubKey) == walletID) {
+            if (DatatypeConverter.printHexBinary(transaction.sPubKey).equals(walletID) ||
+                DatatypeConverter.printHexBinary(transaction.rPubKey).equals(walletID)) {
                 this.transactions.add(transaction);
             }
         }
