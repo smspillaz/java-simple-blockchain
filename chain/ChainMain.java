@@ -125,8 +125,6 @@ public class ChainMain {
                 parser.printUsage(System.err);
                 Platform.exit();
             }
-
-            System.out.println(keystore);
         }
     }
 
