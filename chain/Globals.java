@@ -59,6 +59,7 @@ public class Globals {
 
     public static byte[] convertToByteArray(long l, int nBytes){
         byte[] ba = new byte[nBytes];
+        /* We're using the most significant byte first here */
         for(int i = 0; i < nBytes; i++)
             ba[--nBytes] = (byte) (l & 0xFF);
         return ba;
