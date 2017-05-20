@@ -198,6 +198,18 @@ public class ChainMain {
                         break;
                     case "BAD_POW":
                         msg.append("adding a block with a bad proof of work function");
+                        block.nonce = 0;
+                        try {
+                            block.hash = block.computeContentHash(chain.parentBlockHash(index));
+                        } catch (NoSuchAlgorithmException e) {
+                            System.err.println(e);
+                            Platform.exit();
+                        }
+
+                        /* We rehash from this index onwards - we wanted to rehash
+                         * the current block without necessarily re-mining it
+                         * which is what we did above. */
+                        rehashChainFromIndex(chain, index + 1);
                         break;
                     default:
                         msg.append("... doing nothing. Is this a correct modify op?");
