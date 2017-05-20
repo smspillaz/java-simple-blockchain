@@ -151,8 +151,17 @@ public class Blockchain {
                 );
             }
 
-            /* Also check the hash to make sure that it has a certain number
-             * of leading zeroes (TODO) */
+            /* Also check to see if the block was mined correctly by checking
+             * if the hash has a certain number of leading zeroes */
+            if (block.hash[block.hash.length - 1] != 0) {
+                throw new IntegrityCheckFailedException(
+                    index,
+                    block,
+                    " Expected hash " + DatatypeConverter.printHexBinary(block.hash) +
+                    " to have at least eight leading zeroes, but it did not. The " +
+                    " block was probably not mined correctly"
+                );
+            }
         }
     }
 
