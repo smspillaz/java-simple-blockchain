@@ -10,30 +10,27 @@ import java.security.NoSuchAlgorithmException;
 public class Globals {
 
 // 256BSenderPubKey|256ByteRecPubKey|4BAmount|64ByteSig|4BNonce|64BBlockchainHash
-    public static byte[] myPubKey;
-    public static byte[] myPrivKey;
-    public static int nBytesKeys = 256;
+
+    public static final int nBytesKeys = 256;
+
+    public static final int nBytesNonce = 4;
+    public static final int nBytesAmount = 4;
+    public static final int nBytesSig = 64;
+    public static final int nBytesBlockChainHash = 4;
 
 
-
-    public static int nBytesNonce = 4;
-    public static int nBytesAmount = 4;
-    public static int nBytesSig = 64;
-    public static int nBytesBlockChainHash = 4;
-
-
-    public static int nBytesSPubKeyOffset=0;
-    public static int nBytesRPubKeyOffset=256;
-    public static int nBytesAmountOffset=512;
-    public static int nBytesSigOffset=516;
-    public static int nBytesNonceOffset=580;
-    public static int nBytesBlockchainHashOffset = 584;
+    public static final int nBytesSPubKeyOffset=0;
+    public static final int nBytesRPubKeyOffset=256;
+    public static final int nBytesAmountOffset=512;
+    public static final int nBytesSigOffset=516;
+    public static final int nBytesNonceOffset=580;
+    public static final int nBytesBlockchainHashOffset = 584;
 
     /* Need to subtract two here from the shift amount since long is signed.
      * Then subtract 1, so that we get a binary string of all 1s at 2^31 */
-    public static long maxValNonce = (1 << ((nBytesNonce * 8) - 2)) - 1;
+    public static final long maxValNonce = (1 << ((nBytesNonce * 8) - 2)) - 1;
 
-    public static String hashAlg = "SHA-256";
+    public static final String hashAlg = "SHA-256";
 
     public static byte[] concatByteArrays(byte[][] arrays){
         int len = 0, currIndex = 0;
