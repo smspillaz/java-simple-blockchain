@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -39,16 +41,30 @@ public class BlockchainTest extends TestBase {
 
   @Test
   public void testSerialiseToJSON() throws NoSuchAlgorithmException,
-                                           Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                           Block.MiningException,
+                                           InvalidKeyException,
+                                           SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     chain.serialise();
   }
 
   @Test
   public void testDeserialiseFromJSON() throws NoSuchAlgorithmException,
                                                Blockchain.IntegrityCheckFailedException,
-                                               Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                               Block.MiningException,
+                                               InvalidKeyException,
+                                               SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 
     assertThat(chain.tipHash(), equalTo(deserialised.tipHash()));
@@ -58,8 +74,15 @@ public class BlockchainTest extends TestBase {
   public void testDeserialiseManyBlocksFromJSON() throws NoSuchAlgorithmException,
                                                          Blockchain.IntegrityCheckFailedException,
                                                          Blockchain.WalkFailedException,
-                                                         Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                         Block.MiningException,
+                                                         InvalidKeyException,
+                                                         SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
     ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
@@ -75,8 +98,15 @@ public class BlockchainTest extends TestBase {
   public void testIntegrityCheckFailsWhenModifyingHashes() throws NoSuchAlgorithmException,
                                                                   Blockchain.IntegrityCheckFailedException,
                                                                   Blockchain.WalkFailedException,
-                                                                  Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                                  Block.MiningException,
+                                                                  InvalidKeyException,
+                                                                  SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {
             /* Block here is mutable, so we can mess with its contents. Its
@@ -100,8 +130,15 @@ public class BlockchainTest extends TestBase {
   public void testIntegrityCheckFailedWhenBlockNotMined() throws NoSuchAlgorithmException,
                                                                  Blockchain.IntegrityCheckFailedException,
                                                                  Blockchain.WalkFailedException,
-                                                                 Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                                 Block.MiningException,
+                                                                 InvalidKeyException,
+                                                                 SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {
             /* Change the nonce to something that doesn't prove that we did
@@ -123,8 +160,15 @@ public class BlockchainTest extends TestBase {
   public void testIntegrityCheckFailsWhenModifyingCenterHash() throws NoSuchAlgorithmException,
                                                                       Blockchain.IntegrityCheckFailedException,
                                                                       Blockchain.WalkFailedException,
-                                                                      Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                                      Block.MiningException,
+                                                                      InvalidKeyException,
+                                                                      SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
     ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));

@@ -1,6 +1,8 @@
 import java.util.Collection;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -20,18 +22,32 @@ public class LedgerTest extends TestBase {
   @Test
   public void testLedgerConstruction() throws NoSuchAlgorithmException,
                                               Blockchain.WalkFailedException,
-                                              Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                              Block.MiningException,
+                                              InvalidKeyException,
+                                              SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     new Ledger(chain);
   }
 
   @Test(expected=Blockchain.WalkFailedException.class)
   public void testLedgerFailedValidation() throws NoSuchAlgorithmException,
                                                   Blockchain.WalkFailedException,
-                                                  Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                  Block.MiningException,
+                                                  InvalidKeyException,
+                                                  SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
 
-    /* Try to blindly append an invalid transaction to the chain, i.e, public
+    /* Try to blindly append an invalid transaction to the chain, i.e, receiever
      * key (1) spending money that it doesn't have */
     chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(1, 0, 20, 0));
 
@@ -44,8 +60,15 @@ public class LedgerTest extends TestBase {
   @Test(expected=Blockchain.WalkFailedException.class)
   public void testLedgerFailedValidationNegativeTransaction() throws NoSuchAlgorithmException,
                                                                      Blockchain.WalkFailedException,
-                                                                     Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                                     Block.MiningException,
+                                                                     InvalidKeyException,
+                                                                     SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
 
     /* Try to blindly append a negative transaction. This wouldn't be allowed */
     chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(0, 1, -20, 0));
@@ -59,8 +82,15 @@ public class LedgerTest extends TestBase {
   @Test
   public void testLedgerAddBadTransaction() throws NoSuchAlgorithmException,
                                                    Blockchain.WalkFailedException,
-                                                   Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                   Block.MiningException,
+                                                   InvalidKeyException,
+                                                   SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain);
 
     /* Try to append an invalid transaction to the chain, i.e, public
@@ -68,15 +98,25 @@ public class LedgerTest extends TestBase {
      * just silently reject it (it will return false so that we could
      * potentially log that the transaction failed, but it won't throw
      * an error) */
-    assertThat(ledger.appendTransaction(convenienceTransactionFromIntegerKeys(1, 0, 20, 0)),
+    assertThat(ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(receiverKeys.getPublic(),
+                                                                              senderKeys.getPublic(),
+                                                                              20,
+                                                                              receiverKeys.getPrivate())),
                equalTo(false));
   }
 
   @Test
   public void testLedgerAddBadTransactionNoModifyChain() throws NoSuchAlgorithmException,
                                                          Blockchain.WalkFailedException,
-                                                         Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                         Block.MiningException,
+                                                         InvalidKeyException,
+                                                         SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain);
 
     /* Try to append an invalid transaction to the chain, i.e, public
@@ -91,8 +131,15 @@ public class LedgerTest extends TestBase {
   @Test
   public void testLedgerAddNegativeTransaction() throws NoSuchAlgorithmException,
                                                         Blockchain.WalkFailedException,
-                                                        Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                        Block.MiningException,
+                                                        InvalidKeyException,
+                                                        SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain);
 
     /* Whatever money people have, reverse transactions are not allowed */
@@ -103,8 +150,15 @@ public class LedgerTest extends TestBase {
   @Test
   public void testLedgerAddGoodTransaction() throws NoSuchAlgorithmException,
                                                     Blockchain.WalkFailedException,
-                                                    Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                    Block.MiningException,
+                                                    InvalidKeyException,
+                                                    SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain);
 
     /* Append a valid transation to the chain. It should return true
@@ -116,8 +170,15 @@ public class LedgerTest extends TestBase {
   @Test
   public void testLedgerAddGoodTransactionModifyChain() throws NoSuchAlgorithmException,
                                                                Blockchain.WalkFailedException,
-                                                               Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                               Block.MiningException,
+                                                               InvalidKeyException,
+                                                               SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain);
 
     /* Append a valid transation to the chain. The tip hash should be
@@ -130,8 +191,15 @@ public class LedgerTest extends TestBase {
   @Test
   public void testLedgerAddGoodTransactionReverseModifyChain() throws NoSuchAlgorithmException,
                                                                       Blockchain.WalkFailedException,
-                                                                      Block.MiningException {
-    Blockchain chain = new Blockchain();
+                                                                      Block.MiningException,
+                                                                      InvalidKeyException,
+                                                                      SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
     Ledger ledger = new Ledger(chain);
 
     /* Append a valid transation to the chain, then reverse it. The hashes
