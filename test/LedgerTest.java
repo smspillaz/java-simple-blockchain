@@ -17,8 +17,6 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class LedgerTest extends TestBase {
-  static final String expectedGenesisHash = "76B9F3F69B12FCD6D6731ACC8B53B98118D17D1FFDF726C939DCB06DD6D7F58E";
-
   @Test
   public void testLedgerConstruction() throws NoSuchAlgorithmException,
                                               Blockchain.WalkFailedException,
