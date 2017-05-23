@@ -28,7 +28,7 @@ public class Globals {
 
     /* Need to subtract two here from the shift amount since long is signed.
      * Then subtract 1, so that we get a binary string of all 1s at 2^31 */
-    public static final long maxValNonce = (1 << ((nBytesNonce * 8) - 2)) - 1;
+    public static final long maxValNonce = 1 << (nBytesNonce * 8 - 2) - 1;
 
     public static final String hashAlg = "SHA-256";
 
