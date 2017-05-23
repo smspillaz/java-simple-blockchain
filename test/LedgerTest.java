@@ -109,6 +109,41 @@ public class LedgerTest extends TestBase {
     new Ledger(chain);
   }
 
+  @Test(expected=Ledger.BlobSignatureValidationFailedException.class)
+  public void testLedgerFailedValidationTamperedWithData() throws NoSuchAlgorithmException,
+                                                                  Blockchain.WalkFailedException,
+                                                                  Block.MiningException,
+                                                                  InvalidKeyException,
+                                                                  SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
+
+    /* Append a transaction which was signed by the wrong private key. Signature
+     * validation should fail */
+    SignedObject blob = convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                              receiverKeys.getPublic(),
+                                                              20,
+                                                              senderKeys.getPrivate());
+    blob.payload = Transaction.withMutations(blob.payload, new Transaction.Mutator() {
+      public void mutate(Transaction transaction) {
+        transaction.amount -= 19;
+      }
+    });
+    chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                                     receiverKeys.getPublic(),
+                                                                     20,
+                                                                     receiverKeys.getPrivate()));
+
+    /* Now we create a new ledger from this chain.
+     * It should throw an exception, because the chain transactions are
+     * not valid */
+    new Ledger(chain);
+  }
+
   @Test
   public void testLedgerAddBadTransaction() throws NoSuchAlgorithmException,
                                                    Blockchain.WalkFailedException,
