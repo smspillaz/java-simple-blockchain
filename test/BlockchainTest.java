@@ -63,9 +63,18 @@ public class BlockchainTest extends TestBase {
     );
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
-    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
-    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
-    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
+    ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                   receiverKeys.getPublic(),
+                                                                   20,
+                                                                   senderKeys.getPrivate()));
+    ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                   receiverKeys.getPublic(),
+                                                                   10,
+                                                                   senderKeys.getPrivate()));
+    ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                   receiverKeys.getPublic(),
+                                                                   10,
+                                                                   senderKeys.getPrivate()));
 
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 
@@ -149,18 +158,31 @@ public class BlockchainTest extends TestBase {
     );
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
-    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 20, 0));
-    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
-    ledger.appendTransaction(convenienceTransactionFromIntegerKeys(0, 1, 10, 0));
+    ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                   receiverKeys.getPublic(),
+                                                                   20,
+                                                                   senderKeys.getPrivate()));
+    ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                   receiverKeys.getPublic(),
+                                                                   10,
+                                                                   senderKeys.getPrivate()));
+    ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                   receiverKeys.getPublic(),
+                                                                   10,
+                                                                   senderKeys.getPrivate()));
 
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {
             /* Be a little bit evil and only modify the second transaction */
             if (index == 1) {
-                block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
-                    public void mutate(Transaction transaction) {
-                        transaction.sPubKey = convenienceLongToPubKey(1L);
-                        transaction.rPubKey = convenienceLongToPubKey(0L);
+                block.payload = SignedObject.withMutations(block.payload, new SignedObject.Mutator() {
+                    public void mutate(SignedObject blob) {
+                        blob.payload = Transaction.withMutations(blob.payload, new Transaction.Mutator() {
+                            public void mutate(Transaction transaction) {
+                                transaction.sPubKey = receiverKeys.getPublic().getEncoded();
+                                transaction.rPubKey = senderKeys.getPublic().getEncoded();
+                            }
+                        });
                     }
                 });
             }
