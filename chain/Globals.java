@@ -64,12 +64,4 @@ public class Globals {
             ba[--nBytes] = (byte) ((l >> (i * 8)) & 0xFF);
         return ba;
     }
-
-    public static void log(String msg){ // TODO implement this
-
-
-    }
-
-
-
 }
