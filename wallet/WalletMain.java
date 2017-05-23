@@ -374,7 +374,7 @@ public class WalletMain extends Application {
             return;
         }
 
-        transactionWindow.displayPublicKey(publicKey);
+        transactionWindow.displayPublicKey(this.publicKey);
         transactionWindow.displayCoins(history.balance());
         transactionWindow.displayTransactions(history.log());
     }
