@@ -1,7 +1,9 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 import java.security.Key;
@@ -14,6 +16,7 @@ import java.security.NoSuchProviderException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
+import org.bouncycastle.util.io.pem.PemReader;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -32,6 +35,21 @@ public class KeyGenerator {
             pemWriter.writeObject(new PemObject(description, key.getEncoded()));
         } finally {
             pemWriter.close();
+        }
+    }
+
+    public static byte[] readKeyFromFile(String filename) throws FileNotFoundException,
+                                                                 IOException,
+                                                                 NoSuchAlgorithmException,
+                                                                 NoSuchProviderException {
+        FileInputStream fis = new FileInputStream(filename);
+        InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+        PemReader pemReader = new PemReader(reader);
+
+        try {
+            return pemReader.readPemObject().getContent();
+        } finally {
+            pemReader.close();
         }
     }
 
