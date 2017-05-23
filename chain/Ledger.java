@@ -247,7 +247,8 @@ public class Ledger {
             logTransactionRejectionFailure(transaction,
                                            "was not signed correctly, signature " +
                                            DatatypeConverter.printHexBinary(blob.signature) +
-                                           " is invalid for public key " + transaction.sPubKey);
+                                           " is invalid for public key " +
+                                           DatatypeConverter.printHexBinary(transaction.sPubKey));
             return false;
         }
 
