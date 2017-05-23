@@ -42,6 +42,15 @@ import org.kohsuke.args4j.Option;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.security.KeyPairGenerator;
+import java.security.KeyPair;
+import java.security.Security;
+import java.security.NoSuchProviderException;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 public class ChainMain {
     private static SSLContext createSSLContextForKeyFileStream(InputStream keyStoreStream,
                                                                char[] password) throws CertificateException,
@@ -65,11 +74,26 @@ public class ChainMain {
     }
 
     public static Blockchain fetchInitialBlockchain(String host) throws NoSuchAlgorithmException,
+                                                                        NoSuchProviderException,
+                                                                        InvalidKeyException,
+                                                                        SignatureException,
                                                                         Blockchain.WalkFailedException,
                                                                         Block.MiningException {
         if (host == null) {
             System.out.println("No host specified to download blockchain from, assuming this is the gensis node");
-            return new Blockchain();
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
+            generator.initialize(2048);
+
+            KeyPair genesisKeys = generator.generateKeyPair();
+
+            return new Blockchain(
+                new SignedObject(
+                    new Transaction(genesisKeys.getPublic().getEncoded(),
+                                    genesisKeys.getPublic().getEncoded(),
+                                    50).serialize(),
+                    genesisKeys.getPrivate()
+                ).serialize()
+            );
         } else {
             /* TODO: Implement ability to download, parse and validate existing
              * blockchain */
@@ -224,10 +248,13 @@ public class ChainMain {
 
     public static void main(String[] args) throws IOException,
                                                   NoSuchAlgorithmException,
+                                                  NoSuchProviderException,
+                                                  InvalidKeyException,
                                                   KeyStoreException,
                                                   KeyManagementException,
                                                   CertificateException,
                                                   UnrecoverableKeyException,
+                                                  SignatureException,
                                                   Blockchain.WalkFailedException,
                                                   Block.MiningException {
         Arguments arguments = new Arguments(args);

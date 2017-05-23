@@ -58,24 +58,12 @@ public class Blockchain {
         return digest.digest(buf);
     }
 
-    public Blockchain() throws NoSuchAlgorithmException,
-                               Block.MiningException {
+    public Blockchain(byte[] genesisPayload) throws NoSuchAlgorithmException,
+                                                    Block.MiningException {
         chain = new ArrayList<Block>();
-        /* On the construction of the blockchain, create a genesis node.
-         * Note that right now, we are not signing transactions
-         *
-         * NOTE: This genesis node payload should really be injected by the
-         * consumer and we should just disable the no-arg constructor */
-        byte[] payload = new Transaction(Globals.convertToByteArray(0L,
-                                                                    Globals.nBytesKeys),
-                                         Globals.convertToByteArray(0L,
-                                                                    Globals.nBytesKeys),
-                                         50,
-                                         Globals.convertToByteArray(0L,
-                                                                    Globals.nBytesSig)).serialize();
 
         /* This will auto-mine the nonce and add a new block with this payload */
-        appendPayload(payload);
+        appendPayload(genesisPayload);
     }
 
     public static class WalkFailedException extends Exception {
