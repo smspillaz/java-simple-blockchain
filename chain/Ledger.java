@@ -45,7 +45,7 @@ public class Ledger {
                                                     long srcCoins,
                                                     byte[] dst,
                                                     long amount) {
-            super("Transaction validation failed: " + src +
+            super("Transaction validation failed: " + DatatypeConverter.printHexBinary(src) +
                   " -> " + DatatypeConverter.printHexBinary(dst) + ". " +
                   DatatypeConverter.printHexBinary(src) + " only has " +
                   srcCoins + " Chriscoins, but attempted to " +
