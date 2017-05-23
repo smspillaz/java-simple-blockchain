@@ -9,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.xml.bind.DatatypeConverter;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * The Ledger class uses a blockchain internally to store transactions, but
  * is also responsible for validating transactions as they come into the
@@ -35,6 +37,7 @@ public class Ledger {
     }
 
     private static class TransactionValidationFailedException extends Blockchain.WalkFailedException {
+        @SuppressFBWarnings
         public TransactionValidationFailedException(byte[] src,
                                                     long srcCoins,
                                                     byte[] dst,
