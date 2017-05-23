@@ -49,7 +49,7 @@ public class Globals {
         int n = 0;
         for(int i = 0; i < len; ++i){
             n = n << 8;
-            n |= ba[i + st];
+            n |= (ba[i + st] & 0xff);
         }
         return n;
     }
