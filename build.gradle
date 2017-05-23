@@ -58,6 +58,7 @@ dependencies {
     compile "javax.json:javax.json-api:1.0"
     compile "args4j:args4j:2.33"
     compile "com.google.code.findbugs:findbugs:3.0.1"
+    compile "org.bouncycastle:bcprov-jdk15on:1.51"
     testCompile "junit:junit:4.11"
 }
 
