@@ -20,12 +20,8 @@ import static java.lang.System.exit;
 public class WalletMain extends Application {
     LauncherWindow launcherWindow;
     TransactionWindow transactionWindow;
-    NewTransactionWindow newTransactionWindow;
     Console console;
 
-    String hostname;
-    String keystoreFile;
-    String keystorePassword;
     String publicKey;
 
     public static void main(String[] args) {
@@ -326,9 +322,6 @@ public class WalletMain extends Application {
         }
 
         // If we are successfully connected, save our connection details globally
-        this.hostname = host;
-        this.keystoreFile = keyFile;
-        this.keystorePassword = keyPass;
         this.publicKey = pblKey;
 
         // Load the Transaction Window
@@ -344,14 +337,10 @@ public class WalletMain extends Application {
         launcherWindow.hide();
 
         // Stored Variables Garbage Collector
-        this.hostname = null;
-        this.keystoreFile = null;
-        this.keystorePassword = null;
         this.publicKey = null;
 
         // Window Classes Garbage Collector
         transactionWindow = null;
-        newTransactionWindow = null;
         launcherWindow = null;
 
         console.write("Disconnected");
