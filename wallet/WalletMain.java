@@ -311,10 +311,6 @@ public class WalletMain extends Application {
                 }
             });
         }
-
-        public void hide() {
-            newTransactionWindow.hide();
-        }
     }
 
     private void authenticateLogin(String host,  String keyFile, String keyPass, String pblKey) {
