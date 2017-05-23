@@ -326,10 +326,10 @@ public class WalletMain extends Application {
         }
 
         // If we are successfully connected, save our connection details globally
-        hostname = host;
-        keystoreFile = keyFile;
-        keystorePassword = keyPass;
-        publicKey = pblKey;
+        this.hostname = host;
+        this.keystoreFile = keyFile;
+        this.keystorePassword = keyPass;
+        this.publicKey = pblKey;
 
         // Load the Transaction Window
         transactionWindow = new TransactionWindow();
@@ -344,10 +344,10 @@ public class WalletMain extends Application {
         launcherWindow.hide();
 
         // Stored Variables Garbage Collector
-        hostname = null;
-        keystoreFile = null;
-        keystorePassword = null;
-        publicKey = null;
+        this.hostname = null;
+        this.keystoreFile = null;
+        this.keystorePassword = null;
+        this.publicKey = null;
 
         // Window Classes Garbage Collector
         transactionWindow = null;
