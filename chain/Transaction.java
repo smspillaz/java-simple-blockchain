@@ -6,9 +6,10 @@ import javax.xml.bind.DatatypeConverter;
 public class Transaction {
     public byte[] rPubKey, sPubKey;
     public long amount;
-    public byte[] signature;
 
-    public Transaction(byte[] sPubKey, byte[] rPubKey, long amt, byte[] sig) {
+    public Transaction(byte[] sPubKey,
+                       byte[] rPubKey,
+                       long amt) {
         this.sPubKey = new byte[sPubKey.length];
         this.rPubKey = new byte[rPubKey.length];
 
@@ -16,31 +17,24 @@ public class Transaction {
         System.arraycopy(rPubKey, 0, this.rPubKey, 0, rPubKey.length);
 
         this.amount = amt;
-        this.signature = new byte[sig.length];
-
-        System.arraycopy(sig, 0, this.signature, 0, sig.length);
     }
 
     public Transaction(byte[] byteArray) {
         // 256BSenderPubKey|256ByteRecPubKey|4BAmount|64ByteSig
         this.sPubKey = new byte[Globals.nBytesKeys];
-        System.arraycopy(byteArray, Globals.nBytesSPubKeyOffset, this.sPubKey, 0, Globals.nBytesKeys);
+        System.arraycopy(byteArray, 0, this.sPubKey, 0, Globals.nBytesKeys);
 
         this.rPubKey = new byte[Globals.nBytesKeys];
-        System.arraycopy(byteArray, Globals.nBytesRPubKeyOffset, this.rPubKey, 0, Globals.nBytesKeys);
+        System.arraycopy(byteArray, Globals.nBytesKeys, this.rPubKey, 0, Globals.nBytesKeys);
 
-        this.amount = Globals.readIntFromByteArray(byteArray, Globals.nBytesAmountOffset, Globals.nBytesAmount);
-        this.signature = new byte[Globals.nBytesSig];
-
-        System.arraycopy(byteArray, Globals.nBytesSigOffset, this.signature, 0, Globals.nBytesSig);
+        this.amount = Globals.readIntFromByteArray(byteArray, Globals.nBytesKeys * 2, Globals.nBytesAmount);
     }
 
     public byte[] serialize() {
         return Globals.concatByteArrays(new byte[][]{
             this.sPubKey,
             this.rPubKey,
-            Globals.convertToByteArray(this.amount, Globals.nBytesAmount),
-            this.signature
+            Globals.convertToByteArray(this.amount, Globals.nBytesAmount)
         });
     }
 
@@ -57,8 +51,6 @@ public class Transaction {
     public String toString() {
         return DatatypeConverter.printHexBinary(sPubKey) +
                " -(" + amount +")> " +
-               DatatypeConverter.printHexBinary(rPubKey) +
-               " (sig: " +
-               DatatypeConverter.printHexBinary(signature) + ") ";
+               DatatypeConverter.printHexBinary(rPubKey);
     }
 }

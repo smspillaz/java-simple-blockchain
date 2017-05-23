@@ -6,6 +6,9 @@ import java.util.Arrays;
 
 
 import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -48,7 +51,18 @@ public class Ledger {
                   srcCoins + " Chriscoins, but attempted to " +
                   "spend " + amount + " chriscoins");
         }
-    } 
+    }
+
+    private static class BlobSignatureValidationFailedException extends Blockchain.WalkFailedException {
+        @SuppressFBWarnings
+        public BlobSignatureValidationFailedException(Transaction transaction,
+                                                      byte[] signature) {
+            super("Signature validation failed: signature " +
+                  DatatypeConverter.printHexBinary(signature) + " " +
+                  " was not valid for transaction " +
+                  transaction.toString());
+        }
+    }
 
     public interface TransactionObserver {
         void consume(Transaction transaction);
@@ -63,7 +77,8 @@ public class Ledger {
 
         chain.walk(new Blockchain.BlockEnumerator() {
             public void consume(int index, Block block) throws Blockchain.WalkFailedException {
-                Transaction transaction = new Transaction(block.payload);
+                SignedObject blob = new SignedObject(block.payload);
+                Transaction transaction = new Transaction(blob.payload);
 
                 String srcMapKey = DatatypeConverter.printHexBinary(transaction.sPubKey);
                 String dstMapKey = DatatypeConverter.printHexBinary(transaction.rPubKey);
@@ -101,6 +116,36 @@ public class Ledger {
                                                                    srcCoins,
                                                                    transaction.rPubKey,
                                                                    transaction.amount);
+                }
+
+                boolean signatureVerificationResult = false;
+
+                try {
+                    signatureVerificationResult = SignedObject.signatureIsValid(blob.payload,
+                                                                                blob.signature,
+                                                                                transaction.sPubKey);
+                } catch (NoSuchAlgorithmException e) {
+                    /* Not much we can do here other than re-throw and abort
+                     * the walk process */
+                    throw new Blockchain.WalkFailedException(e.getMessage());
+                } catch (InvalidKeyException e) {
+                    throw new Blockchain.WalkFailedException(transaction +
+                                                             " does not have a processable signature: " +
+                                                             e.getMessage());
+                } catch (InvalidKeySpecException e) {
+                    throw new Blockchain.WalkFailedException(transaction +
+                                                             "has an invalid public key PEM contents: " +
+                                                             e.getMessage());
+                } catch (SignatureException e) {
+                    throw new Blockchain.WalkFailedException(transaction +
+                                                             " has an invalid public key: " +
+                                                             e.getMessage());
+                }
+
+                /* Check to make sure that the signature is valid on the blob */
+                if (!signatureVerificationResult) {
+                    throw new BlobSignatureValidationFailedException(transaction,
+                                                                     blob.signature);
                 }
 
                 /* Transaction would have been successful. Allow this transaction
@@ -152,7 +197,9 @@ public class Ledger {
     /* Attempt to append a transaction to the underlying blockchain. If this
      * process fails, the transaction is just silently rejected - when the network
      * next downloads the transaction ledger it is as if it never took place */
-    public boolean appendTransaction(Transaction transaction) throws NoSuchAlgorithmException {
+    public boolean appendSignedTransaction(SignedObject blob) throws NoSuchAlgorithmException {
+        Transaction transaction = new Transaction(blob.payload);
+
         /* If the map doesn't contain an address, then add it with
          * a balance of zero chriscoins */
         String srcMapKey = DatatypeConverter.printHexBinary(transaction.sPubKey);
@@ -175,8 +222,37 @@ public class Ledger {
             return false;
         }
 
+        /* Check to make sure that the signature is valid on the blob */
+        boolean signatureVerificationResult = false;
+
         try {
-            chain.appendPayload(transaction.serialize());
+            signatureVerificationResult = SignedObject.signatureIsValid(blob.payload,
+                                                                        blob.signature,
+                                                                        transaction.sPubKey);
+        } catch (InvalidKeyException e) {
+            logTransactionRejectionFailure(transaction,
+                                           "has an invalid public key: " + e.getMessage());
+            return false;
+        } catch (InvalidKeySpecException e) {
+            logTransactionRejectionFailure(transaction,
+                                           "has an invalid public key PEM contents: " + e.getMessage());
+            return false;
+        } catch (SignatureException e) {
+            logTransactionRejectionFailure(transaction,
+                                           "didn't have a processable signature: " + e.getMessage());
+            return false;
+        }
+
+        if (!signatureVerificationResult) {
+            logTransactionRejectionFailure(transaction,
+                                           "was not signed correctly, signature " +
+                                           DatatypeConverter.printHexBinary(blob.signature) +
+                                           " is invalid for public key " + transaction.sPubKey);
+            return false;
+        }
+
+        try {
+            chain.appendPayload(blob.serialize());
         } catch (Block.MiningException exception) {
             logTransactionRejectionFailure(transaction,
                                            "could not find a valid solution to " +
