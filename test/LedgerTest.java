@@ -83,6 +83,32 @@ public class LedgerTest extends TestBase {
     new Ledger(chain);
   }
 
+  @Test(expected=Blockchain.WalkFailedException.class)
+  public void testLedgerFailedValidationIncorrectlySigned() throws NoSuchAlgorithmException,
+                                                                   Blockchain.WalkFailedException,
+                                                                   Block.MiningException,
+                                                                   InvalidKeyException,
+                                                                   SignatureException {
+    Blockchain chain = new Blockchain(
+      convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                   senderKeys.getPublic(),
+                                                   50,
+                                                   senderKeys.getPrivate())
+    );
+
+    /* Append a transaction which was signed by the wrong private key. Signature
+     * validation should fail */
+    chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+                                                                     receiverKeys.getPublic(),
+                                                                     20,
+                                                                     receiverKeys.getPrivate()));
+
+    /* Now we create a new ledger from this chain.
+     * It should throw an exception, because the chain transactions are
+     * not valid */
+    new Ledger(chain);
+  }
+
   @Test
   public void testLedgerAddBadTransaction() throws NoSuchAlgorithmException,
                                                    Blockchain.WalkFailedException,
