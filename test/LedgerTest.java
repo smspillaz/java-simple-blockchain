@@ -83,7 +83,7 @@ public class LedgerTest extends TestBase {
     new Ledger(chain);
   }
 
-  @Test(expected=Blockchain.WalkFailedException.class)
+  @Test(expected=Ledger.BlobSignatureValidationFailedException.class)
   public void testLedgerFailedValidationIncorrectlySigned() throws NoSuchAlgorithmException,
                                                                    Blockchain.WalkFailedException,
                                                                    Block.MiningException,
