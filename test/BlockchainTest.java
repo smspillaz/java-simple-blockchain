@@ -17,28 +17,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class BlockchainTest extends TestBase {
-  static final String expectedGenesisHash = "8A47E6B9A38BA3E928883E20CA9CCB5B22887C062760A21072E51F55B67FEE00";
-
-  @Test
-  public void testBlockchainInitialConstruction() throws NoSuchAlgorithmException,
-                                                         Block.MiningException {
-    Blockchain chain = new Blockchain();
-    assertThat(DatatypeConverter.printHexBinary(chain.tipHash()),
-               equalTo(BlockchainTest.expectedGenesisHash));
-  }
-
-  @Test
-  public void testAppendNewTransaction() throws NoSuchAlgorithmException,
-                                                Block.MiningException {
-    Blockchain chain = new Blockchain();
-    chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(0, 1, 25, 0));
-
-    final String execeptedTransactionHash = "F040F3C16453938B3725539808AA818B12FCABC0C7F43A35F59A2EF750FE4C00";
-
-    assertThat(DatatypeConverter.printHexBinary(chain.tipHash()),
-               equalTo(execeptedTransactionHash));
-  }
-
   @Test
   public void testSerialiseToJSON() throws NoSuchAlgorithmException,
                                            Block.MiningException,
