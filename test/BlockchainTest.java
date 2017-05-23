@@ -102,7 +102,7 @@ public class BlockchainTest extends TestBase {
              * node */
             block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
                 public void mutate(Transaction transaction) {
-                    transaction.sPubKey = convenienceLongToPubKey(1L);
+                    transaction.sPubKey = transaction.rPubKey;
                     transaction.rPubKey = transaction.sPubKey;
                 }
             });
