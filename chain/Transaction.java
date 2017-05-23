@@ -9,10 +9,16 @@ public class Transaction {
     public byte[] signature;
 
     public Transaction(byte[] sPubKey, byte[] rPubKey, long amt, byte[] sig) {
-        this.sPubKey = sPubKey;
-        this.rPubKey = rPubKey;
+        this.sPubKey = new byte[sPubKey.length];
+        this.rPubKey = new byte[rPubKey.length];
+
+        System.arraycopy(sPubKey, 0, this.sPubKey, 0, sPubKey.length);
+        System.arraycopy(rPubKey, 0, this.rPubKey, 0, rPubKey.length);
+
         this.amount = amt;
-        this.signature = sig;
+        this.signature = new byte[sig.length];
+
+        System.arraycopy(sig, 0, this.signature, 0, sig.length);
     }
 
     public Transaction(byte[] byteArray) {

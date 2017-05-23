@@ -11,9 +11,11 @@ public class Block {
     public Block(byte[] payload,
                  int nonce,
                  byte[] parentHash) throws NoSuchAlgorithmException {
-        this.payload = payload;
+        this.payload = new byte[payload.length];
         this.nonce = nonce;
         this.hash = this.computeContentHash(parentHash);
+
+        System.arraycopy(payload, 0, this.payload, 0, payload.length);
     }
 
     public static class MiningException extends Exception {
