@@ -39,7 +39,7 @@ public class Ledger {
         }
     }
 
-    private static class TransactionValidationFailedException extends Blockchain.WalkFailedException {
+    public static class TransactionValidationFailedException extends Blockchain.WalkFailedException {
         @SuppressFBWarnings
         public TransactionValidationFailedException(byte[] src,
                                                     long srcCoins,
@@ -53,7 +53,7 @@ public class Ledger {
         }
     }
 
-    private static class BlobSignatureValidationFailedException extends Blockchain.WalkFailedException {
+    public static class BlobSignatureValidationFailedException extends Blockchain.WalkFailedException {
         @SuppressFBWarnings
         public BlobSignatureValidationFailedException(Transaction transaction,
                                                       byte[] signature) {
