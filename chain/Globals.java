@@ -9,22 +9,19 @@ import java.security.NoSuchAlgorithmException;
 
 public class Globals {
 
-// 256BSenderPubKey|256ByteRecPubKey|4BAmount|64ByteSig|4BNonce|64BBlockchainHash
+// 294BSenderPubKey|294ByteRecPubKey|4BAmount|256ByteSig|4BNonce|64BBlockchainHash
 
-    public static final int nBytesKeys = 256;
+    public static final int nBytesKeys = 294;
 
     public static final int nBytesNonce = 4;
     public static final int nBytesAmount = 4;
-    public static final int nBytesSig = 64;
+    public static final int nBytesSig = 256;
     public static final int nBytesBlockChainHash = 4;
 
 
     public static final int nBytesSPubKeyOffset=0;
-    public static final int nBytesRPubKeyOffset=256;
-    public static final int nBytesAmountOffset=512;
-    public static final int nBytesSigOffset=516;
-    public static final int nBytesNonceOffset=580;
-    public static final int nBytesBlockchainHashOffset = 584;
+    public static final int nBytesRPubKeyOffset=nBytesKeys;
+    public static final int nBytesAmountOffset=nBytesKeys * 2;
 
     /* Need to subtract two here from the shift amount since long is signed.
      * Then subtract 1, so that we get a binary string of all 1s at 2^31 */
