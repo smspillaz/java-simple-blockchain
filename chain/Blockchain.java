@@ -1,13 +1,15 @@
-import java.util.Arrays;
+import java.security.DigestException;
 import java.util.List;
 import java.util.ArrayList;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import java.security.MessageDigest;
 
 /**
  * The Blockchain class just keeps a list of blocks and transactions.
@@ -16,17 +18,64 @@ import com.google.gson.JsonElement;
  * make sure that a transaction that is about to be appended makes sense.
  *
  * Each block comprises of a transaction and a parent block, and its hash
- * is influced by the parent-most block's hash. The chain also provides a
+ * is influenced by the parent-most block's hash. The chain also provides a
  * mechanism to iterate over all the prior transactions starting from the
  * genesis to the child-most block in the chain */
+
 public class Blockchain {
     private List<Block> chain;
-    public Blockchain() throws NoSuchAlgorithmException {
+
+    public static byte[] mkHash(byte[] message, int offset, int len) throws NoSuchAlgorithmException {
+        /* Rather surprisingly, MessageDigest.getInstance does not do any
+         * caching of the algorithm instance and stores its own private data.
+         *
+         * However, the evidence seems to me that it is cheaper to just
+         * create a new instance every time we need to do some hashing.
+         *
+         * See: http://stackoverflow.com/questions/13913075/to-pool-or-not-to-pool-java-crypto-service-providers
+         */
+        MessageDigest digest = MessageDigest.getInstance(Globals.hashAlg);
+
+        /* MessageDigest.digest actually writes into an output buffer, the
+         * signature byte[], int, int surprisingly does not start hashing
+         * offset bytes in. So in order to get our (apparently) desired
+         * behaviour here we actually need to copy the array from
+         * the given offset into a new one with a specified length and then
+         * hash that.
+         *
+         * Now, if the incoming message length is the same as the
+         * desired length and there is no offset, we can just use the
+         * incoming message directly */
+        byte buf[];
+
+        if (message.length == len && offset == 0) {
+            buf = message;
+        } else {
+            buf = new byte[len];
+            System.arraycopy(message, offset, buf, 0, len);
+        }
+
+        return digest.digest(buf);
+    }
+
+    public Blockchain() throws NoSuchAlgorithmException,
+                               Block.MiningException {
         chain = new ArrayList<Block>();
         /* On the construction of the blockchain, create a genesis node.
-         * Note that right now, we are not signing transactions */
-        chain.add(new Block(new Transaction(0, 0, 50, 0),
-                            null));
+         * Note that right now, we are not signing transactions
+         *
+         * NOTE: This genesis node payload should really be injected by the
+         * consumer and we should just disable the no-arg constructor */
+        byte[] payload = new Transaction(Globals.convertToByteArray(0L,
+                                                                    Globals.nBytesKeys),
+                                         Globals.convertToByteArray(0L,
+                                                                    Globals.nBytesKeys),
+                                         50,
+                                         Globals.convertToByteArray(0L,
+                                                                    Globals.nBytesSig)).serialize();
+
+        /* This will auto-mine the nonce and add a new block with this payload */
+        appendPayload(payload);
     }
 
     public static class WalkFailedException extends Exception {
@@ -39,7 +88,7 @@ public class Blockchain {
     public static class IntegrityCheckFailedException extends Exception {
         public IntegrityCheckFailedException(int index, Block block, String msg) {
             super("Blockchain integrity check failed at block " + index
-                  + " (" + block.getTransaction() + "). " + msg);
+                  + " (" + block + "). " + msg);
         }
     }
 
@@ -102,20 +151,35 @@ public class Blockchain {
                 );
             }
 
-            /* Also check the hash to make sure that it has a certain number
-             * of leading zeroes (TODO) */
+            /* Also check to see if the block was mined correctly by checking
+             * if the hash has a certain number of leading zeroes */
+            if (block.hash[block.hash.length - 1] != 0) {
+                throw new IntegrityCheckFailedException(
+                    index,
+                    block,
+                    " Expected hash " + DatatypeConverter.printHexBinary(block.hash) +
+                    " to have at least eight leading zeroes, but it did not. The " +
+                    " block was probably not mined correctly"
+                );
+            }
         }
     }
 
     /**
-     * Appends a new transaction to the chain by creating a new block for it
+     * Appends a new payload to the chain by creating a new block for it
      * with a reference to the child-most block as its parent. Note that
-     * this does absolutely no validation to check if the transaction was
+     * this does absolutely no validation to check if the payload was
      * valid - you will need to validate this before you append the block
      * to the chain.
+     *
+     * Note that this method will attempt to mine the block (by computing
+     * its nonce) before appending it to the chain
      */
-    public void appendTransaction(Transaction transaction) throws NoSuchAlgorithmException {
-        chain.add(new Block(transaction, parentBlockHash(chain.size())));
+    public void appendPayload(byte[] payload) throws NoSuchAlgorithmException,
+                                                     Block.MiningException {
+        byte[] parentHash = parentBlockHash(chain.size());
+        int nonce = Block.mineNonce(payload, parentHash);
+        chain.add(new Block(payload, nonce, parentHash));
     }
 
     /**

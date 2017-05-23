@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Arrays;
 
+import javax.xml.bind.DatatypeConverter;
+
 public class WalletBlockchainConsumer {
     private Blockchain chain;
 
@@ -11,18 +13,18 @@ public class WalletBlockchainConsumer {
     }
 
     public static class TransactionHistoryObserver implements Ledger.TransactionObserver {
-        private int walletID;
+        private String walletID;
         private List<Transaction> transactions;
 
-        public TransactionHistoryObserver(int walletID) {
+        public TransactionHistoryObserver(String walletID) {
             this.walletID = walletID;
             this.transactions = new LinkedList<Transaction>();
         }
 
         @Override
         public void consume(Transaction transaction) {
-            if (transaction.src == walletID ||
-                transaction.dst == walletID) {
+            if (DatatypeConverter.printHexBinary(transaction.sPubKey).equals(walletID) ||
+                DatatypeConverter.printHexBinary(transaction.rPubKey).equals(walletID)) {
                 this.transactions.add(transaction);
             }
         }
@@ -32,7 +34,7 @@ public class WalletBlockchainConsumer {
         }
     }
 
-    public TransactionHistory transactionHistory(int walletID) throws Blockchain.WalkFailedException {
+    public TransactionHistory transactionHistory(String walletID) throws Blockchain.WalkFailedException {
         TransactionHistoryObserver observer = new TransactionHistoryObserver(walletID);
 
         new Ledger(chain, new LinkedList<Ledger.TransactionObserver>() {{
