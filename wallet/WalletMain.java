@@ -261,7 +261,7 @@ public class WalletMain extends Application {
         }
     }
 
-    private class NewTransactionWindow {
+    private static class NewTransactionWindow {
         public NewTransactionWindow() {
             Stage newTransactionWindow;
 
