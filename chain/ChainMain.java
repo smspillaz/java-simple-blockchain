@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 
@@ -22,11 +24,18 @@ import javafx.application.Platform;
 
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
+import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.KeyManagementException;
+import java.security.Security;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.xml.bind.DatatypeConverter;
 
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpExchange;
@@ -73,32 +82,50 @@ public class ChainMain {
         return context;
     }
 
-    public static Blockchain fetchInitialBlockchain(String host) throws NoSuchAlgorithmException,
-                                                                        NoSuchProviderException,
-                                                                        InvalidKeyException,
-                                                                        SignatureException,
-                                                                        Blockchain.WalkFailedException,
-                                                                        Block.MiningException {
+    public static Blockchain fetchInitialBlockchain(String host,
+                                                    String genesisBlockPublicKey,
+                                                    Integer genesisBlockAmount,
+                                                    String signGenesisBlockWith) throws NoSuchAlgorithmException,
+                                                                                        NoSuchProviderException,
+                                                                                        IOException,
+                                                                                        InvalidKeyException,
+                                                                                        InvalidKeySpecException,
+                                                                                        SignatureException,
+                                                                                        Blockchain.WalkFailedException,
+                                                                                        Block.MiningException {
         if (host == null) {
-            System.out.println("No host specified to download blockchain from, assuming this is the gensis node");
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
-            generator.initialize(2048);
+            System.out.println("No host specified to download blockchain from, " +
+                               "creating genesis node with public key " +
+                               genesisBlockPublicKey + " and starting with amount " +
+                               genesisBlockAmount);
 
-            KeyPair genesisKeys = generator.generateKeyPair();
+            /* The byte-encoded public key, deserialised from a hex-binary representation */
+            byte[] pubKey = DatatypeConverter.parseHexBinary(genesisBlockPublicKey);
 
-            return new Blockchain(
-                new SignedObject(
-                    new Transaction(genesisKeys.getPublic().getEncoded(),
-                                    genesisKeys.getPublic().getEncoded(),
-                                    50).serialize(),
-                    genesisKeys.getPrivate()
-                ).serialize()
-            );
-        } else {
-            /* TODO: Implement ability to download, parse and validate existing
-             * blockchain */
-            return null;
+            try {
+                return new Blockchain(
+                    new SignedObject(
+                        new Transaction(pubKey,
+                                        pubKey,
+                                        50).serialize(),
+                        KeyFactory.getInstance("RSA", "BC").generatePrivate(
+                            new PKCS8EncodedKeySpec(
+                                KeyGenerator.readKeyFromFile(signGenesisBlockWith)
+                            )
+                        )
+                    ).serialize()
+                );
+            } catch (FileNotFoundException e) {
+                System.err.println("Error creating genesis node, the genesis " +
+                                   "block signing key was not found at " + signGenesisBlockWith +
+                                   ": " + e.getMessage());
+                Platform.exit();
+            }
         }
+
+        /* TODO: Implement ability to download, parse and validate existing
+         * blockchain */
+        return null;
     }
 
     public static class Arguments {
@@ -115,6 +142,21 @@ public class ChainMain {
                 metaVar="HOST")
         public String downloadBlockchainFrom;
 
+        @Option(name="-genesis-block-public-key",
+                usage="Public key of genesis block",
+                metaVar="PUBLIC_KEY_STRING")
+        public String genesisBlockPublicKey;
+
+        @Option(name="-genesis-amount",
+                usage="Amount paid to gensis block on first transaction",
+                metaVar="AMOUNT")
+        public Integer genesisBlockAmount;
+
+        @Option(name="-sign-genesis-block-with",
+                usage="Path to private key to sign genesis block with",
+                metaVar="PRIVATE_KEY_PATH")
+        public String signGensisBlockWith;
+
         @SuppressFBWarnings(value="UR_UNINIT_READ",
                             justification="Values are set by CmdLineParser")
         public Arguments(String[] args) {
@@ -125,6 +167,19 @@ public class ChainMain {
 
                 if (keystore == null) {
                     throw new CmdLineException(parser, "Must provide a -keystore");
+                }
+
+                if (downloadBlockchainFrom == null &&
+                    (genesisBlockPublicKey == null ||
+                     genesisBlockAmount == null ||
+                     signGensisBlockWith == null)) {
+                    throw new CmdLineException(
+                        parser,
+                        "Must provide either a -download-blockchain-from " +
+                        "or a triple of -genesis-block-public-key " +
+                        "-genesis-amount and " +
+                        "-sign-genesis-block-with"
+                    );
                 }
 
                 if (corruptChainWith != null) {
@@ -250,6 +305,7 @@ public class ChainMain {
                                                   NoSuchAlgorithmException,
                                                   NoSuchProviderException,
                                                   InvalidKeyException,
+                                                  InvalidKeySpecException,
                                                   KeyStoreException,
                                                   KeyManagementException,
                                                   CertificateException,
@@ -258,6 +314,8 @@ public class ChainMain {
                                                   Blockchain.WalkFailedException,
                                                   Block.MiningException {
         Arguments arguments = new Arguments(args);
+        Security.addProvider(new BouncyCastleProvider());
+
         HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
         SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(arguments.keystore),
                                                                         System.getenv("KEYSTORE_PASSWORD")
@@ -280,7 +338,10 @@ public class ChainMain {
             }
         });
 
-        Blockchain chain = fetchInitialBlockchain(arguments.downloadBlockchainFrom);
+        Blockchain chain = fetchInitialBlockchain(arguments.downloadBlockchainFrom,
+                                                  arguments.genesisBlockPublicKey,
+                                                  arguments.genesisBlockAmount,
+                                                  arguments.signGensisBlockWith);
         Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
         if (arguments.corruptChainWith != null) {
             performChainCorruption(chain, ledger, arguments.corruptChainWith);

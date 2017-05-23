@@ -19,6 +19,12 @@ public class WalletCLI {
         @Option(name="-keystore", usage="The Client-Side Java KeyStore to use (mandatory)", metaVar="KEYSTORE")
         public String keystore;
 
+        @Option(name="-wallet-id", usage="The client's wallet ID (public key)", metaVar="WALLET_ID")
+        public String walletID;
+
+        @Option(name="-signing-key", usage="The client's secret key. Not required to read state, but required for making transactions", metaVar="SIGNING_KEY")
+        public String signingKey;
+
         @Option(name="-host", usage="The blockchain host to connect to (mandatory)", metaVar="HOST")
         public String host;
 
@@ -34,6 +40,10 @@ public class WalletCLI {
 
                 if (host == null) {
                     throw new CmdLineException(parser, "Must provide a -host");
+                }
+
+                if (walletID == null) {
+                    throw new CmdLineException(parser, "Must provide a -wallet-id");
                 }
 
                 if (System.getenv("KEYSTORE_PASSWORD") == null) {
@@ -63,10 +73,7 @@ public class WalletCLI {
                                                                        arguments.keystore,
                                                                        System.getenv("KEYSTORE_PASSWORD"));
 
-        TransactionHistory history = walletOrchestrator.history(
-            DatatypeConverter.printHexBinary(Globals.convertToByteArray(0L,
-                                                                        Globals.nBytesKeys))
-        );
+        TransactionHistory history = walletOrchestrator.history(arguments.walletID);
 
         System.out.println("Current balance: " + history.balance());
         System.out.println(walletOrchestrator.transaction());
