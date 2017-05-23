@@ -13,9 +13,9 @@ public class Block {
                  byte[] parentHash) throws NoSuchAlgorithmException {
         this.payload = new byte[payload.length];
         this.nonce = nonce;
-        this.hash = this.computeContentHash(parentHash);
-
         System.arraycopy(payload, 0, this.payload, 0, payload.length);
+
+        this.hash = this.computeContentHash(parentHash);
     }
 
     public static class MiningException extends Exception {
