@@ -5,16 +5,26 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.IllegalArgumentException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Scanner;
+
+import javax.xml.bind.DatatypeConverter;
 
 public class WalletOrchestrator {
     public String host;
@@ -66,27 +76,55 @@ public class WalletOrchestrator {
         this.host = host;
     }
 
-    private String request(String endpoint) throws MalformedURLException,
-                                                   IOException {
+    private String request(String endpoint, String method, String body) throws MalformedURLException,
+                                                                               IOException {
         URL url = new URL("https://" + host + ":3002/" + endpoint);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestProperty("Accept-Charset", "UTF-8");
+        connection.setRequestMethod(method);
+        if (body != null) {
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            OutputStream os = connection.getOutputStream();
+            os.write(body.getBytes("UTF-8"));
+            os.close();
+        }
         InputStream response = connection.getInputStream();
 
         Scanner s = new Scanner(response, "UTF-8").useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }
 
-    public String transaction() throws MalformedURLException,
-                                       IOException {
-        return request("transaction");
+    public String transaction(String src,
+                              String dst,
+                              long amount,
+                              byte[] signingKey) throws MalformedURLException,
+                                                        IOException,
+                                                        InvalidKeyException,
+                                                        InvalidKeySpecException,
+                                                        NoSuchProviderException,
+                                                        NoSuchAlgorithmException,
+                                                        SignatureException {
+        PrivateKey key = KeyFactory.getInstance("RSA", "BC").generatePrivate(
+            new PKCS8EncodedKeySpec(signingKey)
+        );
+        Transaction transaction = new Transaction(DatatypeConverter.parseHexBinary(src),
+                                                  DatatypeConverter.parseHexBinary(dst),
+                                                  amount);
+        SignedObject blob = new SignedObject(transaction.serialize(), key);
+        Models.Transaction record = new Models.Transaction(src,
+                                                           dst,
+                                                           amount,
+                                                           DatatypeConverter.printHexBinary(blob.signature));
+        return request("transaction", "POST", record.serialise());
     }
 
     public Blockchain fetchBlockchain() throws MalformedURLException,
                                                IOException,
                                                NoSuchAlgorithmException,
                                                Blockchain.IntegrityCheckFailedException {
-        return Blockchain.deserialise(request("download_blockchain"));
+        return Blockchain.deserialise(request("download_blockchain", "GET", null));
     }
 
     public static TransactionHistory transactionHistoryFromChain(String walletID, Blockchain chain) throws Blockchain.WalkFailedException {

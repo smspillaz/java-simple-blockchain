@@ -1,9 +1,14 @@
 import java.io.IOException;
 import java.security.cert.CertificateException;
+import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
+import java.security.SignatureException;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
 
 import javafx.application.Platform;
 
@@ -13,6 +18,8 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class WalletCLI {
     public static class Arguments {
@@ -24,6 +31,12 @@ public class WalletCLI {
 
         @Option(name="-signing-key", usage="The client's secret key. Not required to read state, but required for making transactions", metaVar="SIGNING_KEY")
         public String signingKey;
+
+        @Option(name="-amount", usage="Amount to send to a recipient", metaVar="AMOUNT")
+        public Integer amount;
+
+        @Option(name="-recipient", usage="The receiver's wallet ID (public key)", metaVar="WALLET_ID")
+        public String recipient;
 
         @Option(name="-host", usage="The blockchain host to connect to (mandatory)", metaVar="HOST")
         public String host;
@@ -60,12 +73,17 @@ public class WalletCLI {
     public static void main(String[] args) throws IOException,
                                                   CertificateException,
                                                   NoSuchAlgorithmException,
+                                                  NoSuchProviderException,
                                                   KeyStoreException,
                                                   KeyManagementException,
                                                   UnrecoverableKeyException,
+                                                  InvalidKeyException,
+                                                  InvalidKeySpecException,
+                                                  SignatureException,
                                                   Blockchain.WalkFailedException,
                                                   Blockchain.IntegrityCheckFailedException {
         Arguments arguments = new Arguments(args);
+        Security.addProvider(new BouncyCastleProvider());
 
         /* In the case of the commandline interface, if something fails, we
          * just throw an exception and let it propogate. */
@@ -76,6 +94,11 @@ public class WalletCLI {
         TransactionHistory history = walletOrchestrator.history(arguments.walletID);
 
         System.out.println("Current balance: " + history.balance());
-        System.out.println(walletOrchestrator.transaction());
+        if (arguments.recipient != null) {
+            System.out.println(walletOrchestrator.transaction(arguments.walletID,
+                                                              arguments.recipient,
+                                                              arguments.amount,
+                                                              KeyGenerator.readKeyFromFile(arguments.signingKey)));
+        }
     }
 }
