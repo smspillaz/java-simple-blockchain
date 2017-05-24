@@ -20,6 +20,8 @@ public class TestBase {
   protected KeyPair senderKeys;
   protected KeyPair receiverKeys;
 
+  protected long problemDifficulty = 2;
+
   @Before
   public void setUp() throws SignatureException,
                              NoSuchAlgorithmException,

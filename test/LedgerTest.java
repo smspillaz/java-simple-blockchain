@@ -27,7 +27,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     new Ledger(chain);
   }
@@ -42,7 +43,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
 
     /* Try to blindly append an invalid transaction to the chain, i.e, receiever
@@ -68,7 +70,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
 
     /* Try to blindly append a negative transaction. This wouldn't be allowed */
@@ -93,7 +96,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
 
     /* Append a transaction which was signed by the wrong private key. Signature
@@ -119,7 +123,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
 
     /* Append a transaction which was signed by the wrong private key. Signature
@@ -154,7 +159,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain);
 
@@ -180,7 +186,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain);
 
@@ -206,7 +213,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain);
 
@@ -228,7 +236,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain);
 
@@ -251,7 +260,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain);
 
@@ -275,7 +285,8 @@ public class LedgerTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain);
 

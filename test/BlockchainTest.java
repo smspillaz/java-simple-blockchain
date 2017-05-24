@@ -26,7 +26,8 @@ public class BlockchainTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     chain.serialise();
   }
@@ -41,7 +42,8 @@ public class BlockchainTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Blockchain deserialised = Blockchain.deserialise(chain.serialise());
 
@@ -59,7 +61,8 @@ public class BlockchainTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 
@@ -92,7 +95,8 @@ public class BlockchainTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {
@@ -124,13 +128,14 @@ public class BlockchainTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     chain.walk(new Blockchain.BlockEnumerator() {
         public void consume(int index, Block block) {
             /* Change the nonce to something that doesn't prove that we did
              * the work required to mine this block and then re-hash the block */
-            block.nonce = 0;
+            block.nonce = block.nonce + 1;
             try {
               block.hash = block.computeContentHash(chain.parentBlockHash(index));
             } catch (NoSuchAlgorithmException e) {
@@ -154,7 +159,8 @@ public class BlockchainTest extends TestBase {
       convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                    senderKeys.getPublic(),
                                                    50,
-                                                   senderKeys.getPrivate())
+                                                   senderKeys.getPrivate()),
+      problemDifficulty
     );
     Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
 

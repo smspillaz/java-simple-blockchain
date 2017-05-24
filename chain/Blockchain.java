@@ -24,6 +24,7 @@ import java.security.MessageDigest;
 
 public class Blockchain {
     private List<Block> chain;
+    private long problemDifficulty;
 
     public static byte[] mkHash(byte[] message, int offset, int len) throws NoSuchAlgorithmException {
         /* Rather surprisingly, MessageDigest.getInstance does not do any
@@ -58,9 +59,11 @@ public class Blockchain {
         return digest.digest(buf);
     }
 
-    public Blockchain(byte[] genesisPayload) throws NoSuchAlgorithmException,
-                                                    Block.MiningException {
-        chain = new ArrayList<Block>();
+    public Blockchain(byte[] genesisPayload,
+                      long problemDifficulty) throws NoSuchAlgorithmException,
+                                                     Block.MiningException {
+        this.chain = new ArrayList<Block>();
+        this.problemDifficulty = problemDifficulty;
 
         /* This will auto-mine the nonce and add a new block with this payload */
         appendPayload(genesisPayload);
@@ -141,7 +144,7 @@ public class Blockchain {
 
             /* Also check to see if the block was mined correctly by checking
              * if the hash has a certain number of leading zeroes */
-            if (block.hash[block.hash.length - 1] != 0) {
+            if (!Block.satisfiesProblemDifficulty(block.hash, problemDifficulty)) {
                 throw new IntegrityCheckFailedException(
                     index,
                     block,
@@ -166,7 +169,7 @@ public class Blockchain {
     public void appendPayload(byte[] payload) throws NoSuchAlgorithmException,
                                                      Block.MiningException {
         byte[] parentHash = parentBlockHash(chain.size());
-        int nonce = Block.mineNonce(payload, parentHash);
+        int nonce = Block.mineNonce(payload, parentHash, problemDifficulty);
         chain.add(new Block(payload, nonce, parentHash));
     }
 

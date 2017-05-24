@@ -21,7 +21,6 @@ public class BlockchainVisualTest {
                                 genesisKeys.getPrivate()).serialize()
             );
 
-            System.out.println(DatatypeConverter.printHexBinary(chain.tipHash()));
         } catch (NoSuchAlgorithmException exception) {
             System.err.println("Java installation does not support SHA-256, cannot continue");
             System.exit(1);
