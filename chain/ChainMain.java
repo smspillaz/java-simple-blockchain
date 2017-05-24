@@ -2,8 +2,10 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.FileNotFoundException;
@@ -301,6 +303,20 @@ public class ChainMain {
         });
     }
 
+    public static byte[] readAllBytes(InputStream stream) throws IOException {
+        try (ByteArrayOutputStream ba = new ByteArrayOutputStream();) {
+            byte[] buffer = new byte[0xFFFF];
+            int read = 0;
+
+            while ((read = stream.read(buffer, 0, buffer.length)) != -1) {
+                ba.write(buffer, 0, read);
+            }
+
+            ba.flush();
+            return ba.toByteArray();
+        }
+    }
+
     public static void main(String[] args) throws IOException,
                                                   NoSuchAlgorithmException,
                                                   NoSuchProviderException,
@@ -350,11 +366,27 @@ public class ChainMain {
         server.createContext("/transaction", new HttpHandler () {
             @Override
             public void handle(HttpExchange exchange) throws IOException {
-                String response = "Transaction Response";
-                exchange.sendResponseHeaders(200, response.length());
+                String json = new String(readAllBytes(exchange.getRequestBody()), "UTF-8");
+                Models.Transaction record = Models.Transaction.deserialise(json);
+
                 OutputStream stream = exchange.getResponseBody();
-                stream.write(response.getBytes(Charset.forName("UTF-8")));
-                stream.close();
+
+                try {
+                    Transaction transaction = new Transaction(DatatypeConverter.parseHexBinary(record.src),
+                                                              DatatypeConverter.parseHexBinary(record.dst),
+                                                              record.amount);
+                    SignedObject blob = new SignedObject(transaction.serialize(),
+                                                         DatatypeConverter.parseHexBinary(record.signature));
+                    String response = Boolean.valueOf(ledger.appendSignedTransaction(blob)).toString();
+
+                    exchange.sendResponseHeaders(200, response.length());
+
+                    stream.write(response.getBytes(Charset.forName("UTF-8")));
+                } catch (NoSuchAlgorithmException e) {
+                    stream.write("false".getBytes(Charset.forName("UTF-8")));
+                } finally {
+                    stream.close();
+                }
             }
         });
         server.createContext("/download_blockchain", new HttpHandler () {
