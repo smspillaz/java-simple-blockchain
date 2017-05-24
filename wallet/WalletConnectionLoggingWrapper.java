@@ -1,10 +1,14 @@
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
+import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
+import java.security.spec.InvalidKeySpecException;
 import java.security.cert.CertificateException;
 
 /**
@@ -48,16 +52,29 @@ class WalletConnectionLoggingWrapper {
         }
     }
 
-    public void transaction() {
+    public void transaction(String src,
+                            String dst,
+                            long amount,
+                            byte[] signingKey) {
         if (this.wallet != null) {
             logger.write("Performing Transaction");
 
             try {
-                logger.write(this.wallet.transaction());
+                logger.write(this.wallet.transaction(src, dst, amount, signingKey));
             } catch (MalformedURLException e) {
                 logger.write("Connecting to /transaction on host yielded a malformed URL: " + e.toString());
             } catch (IOException e) {
                 logger.write("Input/Output error occurred when connecting to /transaction on host: " + e.toString());
+            } catch (InvalidKeySpecException e) {
+                logger.write(e.getMessage());
+            } catch (InvalidKeyException e) {
+                logger.write("Signing was invalid: " + e.getMessage());
+            } catch (NoSuchProviderException e) {
+                logger.write(e.getMessage());
+            } catch (NoSuchAlgorithmException e) {
+                logger.write(e.toString());
+            } catch (SignatureException e) {
+                logger.write("Failed to parse signature: " + e.getMessage());
             }
         }
     }
