@@ -87,14 +87,15 @@ public class ChainMain {
     public static Blockchain fetchInitialBlockchain(String host,
                                                     String genesisBlockPublicKey,
                                                     Integer genesisBlockAmount,
-                                                    String signGenesisBlockWith) throws NoSuchAlgorithmException,
-                                                                                        NoSuchProviderException,
-                                                                                        IOException,
-                                                                                        InvalidKeyException,
-                                                                                        InvalidKeySpecException,
-                                                                                        SignatureException,
-                                                                                        Blockchain.WalkFailedException,
-                                                                                        Block.MiningException {
+                                                    String signGenesisBlockWith,
+                                                    Long problemDifficulty) throws NoSuchAlgorithmException,
+                                                                                   NoSuchProviderException,
+                                                                                   IOException,
+                                                                                   InvalidKeyException,
+                                                                                   InvalidKeySpecException,
+                                                                                   SignatureException,
+                                                                                   Blockchain.WalkFailedException,
+                                                                                   Block.MiningException {
         if (host == null) {
             System.out.println("No host specified to download blockchain from, " +
                                "creating genesis node with public key " +
@@ -115,7 +116,8 @@ public class ChainMain {
                                 KeyGenerator.readKeyFromFile(signGenesisBlockWith)
                             )
                         )
-                    ).serialize()
+                    ).serialize(),
+                    problemDifficulty
                 );
             } catch (FileNotFoundException e) {
                 System.err.println("Error creating genesis node, the genesis " +
@@ -158,6 +160,11 @@ public class ChainMain {
                 usage="Path to private key to sign genesis block with",
                 metaVar="PRIVATE_KEY_PATH")
         public String signGensisBlockWith;
+
+        @Option(name="-problem-difficulty",
+                usage="The problem difficulty (1 to 63)",
+                metaVar="DIFFICULTY")
+        public Long problemDifficulty = Long.valueOf(4);
 
         @SuppressFBWarnings(value="UR_UNINIT_READ",
                             justification="Values are set by CmdLineParser")
@@ -211,14 +218,16 @@ public class ChainMain {
     }
 
     public static void rehashChainFromIndex(Blockchain chain,
-                                            int rehashFrom) {
+                                            int rehashFrom,
+                                            long problemDifficulty) {
         try {
             chain.walk(new Blockchain.BlockEnumerator() {
                 public void consume(int index, Block block) throws Blockchain.WalkFailedException {
                     if (index >= rehashFrom) {
                         try {
                             int nonce = Block.mineNonce(block.payload,
-                                                        chain.parentBlockHash(index));
+                                                        chain.parentBlockHash(index),
+                                                        problemDifficulty);
                             block.nonce = nonce;
                             block.hash = block.computeContentHash(chain.parentBlockHash(index));
                         } catch (NoSuchAlgorithmException e) {
@@ -237,8 +246,9 @@ public class ChainMain {
 
     public static void performChainCorruption(Blockchain chain,
                                               Ledger ledger,
-                                              String op) throws Blockchain.WalkFailedException,
-                                                                Block.MiningException {
+                                              String op,
+                                              long problemDifficulty) throws Blockchain.WalkFailedException,
+                                                                             Block.MiningException {
         /* Chosen by fair dice roll, guaranteed to be random */
         int random = 2;
         int indexToModify = random % chain.length();
@@ -266,7 +276,7 @@ public class ChainMain {
                                 transaction.amount *= 1;
                             }
                         });
-                        rehashChainFromIndex(chain, index);
+                        rehashChainFromIndex(chain, index, problemDifficulty);
                         break;
                     case "BAD_SIGNATURE":
                         msg.append("modifying the transaction amount but rehashing the block (and all children)");
@@ -275,7 +285,7 @@ public class ChainMain {
                                 transaction.amount -= 1;
                             }
                         });
-                        rehashChainFromIndex(chain, index);
+                        rehashChainFromIndex(chain, index, problemDifficulty);
                         break;
                     case "BAD_POW":
                         msg.append("adding a block with a bad proof of work function");
@@ -290,7 +300,7 @@ public class ChainMain {
                         /* We rehash from this index onwards - we wanted to rehash
                          * the current block without necessarily re-mining it
                          * which is what we did above. */
-                        rehashChainFromIndex(chain, index + 1);
+                        rehashChainFromIndex(chain, index + 1, problemDifficulty);
                         break;
                     default:
                         msg.append("... doing nothing. Is this a correct modify op?");
@@ -357,10 +367,11 @@ public class ChainMain {
         Blockchain chain = fetchInitialBlockchain(arguments.downloadBlockchainFrom,
                                                   arguments.genesisBlockPublicKey,
                                                   arguments.genesisBlockAmount,
-                                                  arguments.signGensisBlockWith);
+                                                  arguments.signGensisBlockWith,
+                                                  arguments.problemDifficulty);
         Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
         if (arguments.corruptChainWith != null) {
-            performChainCorruption(chain, ledger, arguments.corruptChainWith);
+            performChainCorruption(chain, ledger, arguments.corruptChainWith, arguments.problemDifficulty);
         }
 
         server.createContext("/transaction", new HttpHandler () {

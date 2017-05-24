@@ -1,6 +1,10 @@
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import java.lang.Math;
+
+import java.math.BigInteger;
+
 import javax.xml.bind.DatatypeConverter;
 
 public class Block {
@@ -24,15 +28,41 @@ public class Block {
         }
     }
 
+    public static boolean satisfiesProblemDifficultyForTarget(byte[] hash, BigInteger target) {
+        BigInteger hashInt = new BigInteger(hash);
+        if (hashInt.compareTo(BigInteger.ZERO) == -1) {
+            return false;
+        }
+
+        return hashInt.compareTo(target) == -1;
+    }
+
+    public static boolean satisfiesProblemDifficulty(byte[] hash, long problemDifficulty) {
+        BigInteger target = BigInteger.valueOf(0L).setBit(255 - (int) problemDifficulty);
+        return satisfiesProblemDifficultyForTarget(hash, target);
+    }
+
+    private static void sleepForMs(long ms) {
+        /* This simulates more difficult problems by sleeping for longer
+         * between attempts */
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+        }
+    }
+
     public static int mineNonce(byte[] payload,
-                                byte[] parentHash) throws NoSuchAlgorithmException,
-                                                          MiningException {
+                                byte[] parentHash,
+                                long problemDifficulty) throws NoSuchAlgorithmException,
+                                                               MiningException {
         parentHash = parentHash != null ? parentHash : new byte[0];
         byte[] blockContents = Globals.concatByteArrays(new byte[][] {
             parentHash,
             payload,
             new byte[Globals.nBytesNonce]
         });
+
+        BigInteger target = BigInteger.valueOf(0L).setBit(255 - (int) problemDifficulty);
 
         // cycle through all 2 ^ 630 values until loops back to 0
         for (int nonce = 0; nonce <= Globals.maxValNonce; nonce++) {
@@ -45,9 +75,11 @@ public class Block {
             byte[] blockChainHash = Blockchain.mkHash(blockContents, 0, blockContents.length);
 
             /* First byte is all zeroes, we have our nonce */
-            if (blockChainHash[blockChainHash.length - 1] == 0) {
+            if (satisfiesProblemDifficultyForTarget(blockChainHash, target)) {
                 return nonce;
             }
+
+            sleepForMs((long) Math.pow(2, problemDifficulty));
         }
 
         throw new MiningException();
