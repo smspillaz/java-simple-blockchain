@@ -27,6 +27,15 @@ class SignedObject {
         this.signature = generateSignatureBytes(this.payload, signingKey);
     }
 
+    /* Construct a signed object from some payload and a pre-existing
+     * signature of that payload */
+    public SignedObject(byte[] payload, byte[] signature)  throws NoSuchAlgorithmException {
+        this.payload = new byte[payload.length];
+        System.arraycopy(payload, 0, this.payload, 0, payload.length);
+        this.signature = new byte[signature.length];
+        System.arraycopy(signature, 0, this.signature, 0, signature.length);
+    }
+
     /* Constructed a SignedObject from a serialised bytestream. Note that this
      * does not do any validation of the signature itself, it just reads it
      * from the underlying bitstream. You can use the convenience method
