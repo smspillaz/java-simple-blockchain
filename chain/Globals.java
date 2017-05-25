@@ -40,13 +40,11 @@ public class Globals {
         return a;
     }
 
-
-    // convert bytes from byte array into primitive <E>
     public static int readIntFromByteArray(byte[] ba, int st, int len){
         int n = 0;
         for(int i = 0; i < len; ++i){
             n = n << 8;
-            n |= ba[i + st] & 0xff;
+            n |= ba[i + st];
         }
         return n;
     }
@@ -55,7 +53,7 @@ public class Globals {
         byte[] ba = new byte[nBytes];
         /* We're using the most significant byte first here */
         for(int i = 0; i < nBytes; i++)
-            ba[--nBytes] = (byte) ((l >> (i * 8)) & 0xFF);
+            ba[--nBytes] = (byte) (l >> (i * 8));
         return ba;
     }
 }
