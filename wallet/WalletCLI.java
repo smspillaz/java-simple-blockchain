@@ -59,6 +59,11 @@ public class WalletCLI {
                     throw new CmdLineException(parser, "Must provide a -wallet-id");
                 }
 
+                if ((recipient != null) &&
+                    (signingKey == null || amount == null)) {
+                    throw new CmdLineException(parser, "Must provide a -signing-key and -amount if specifying a -recipient");
+                }
+
                 if (System.getenv("KEYSTORE_PASSWORD") == null) {
                     throw new CmdLineException(parser, "Must set KEYSTORE_PASSWORD in the environment");
                 }
