@@ -114,6 +114,12 @@ public class Blockchain {
         return chain.size();
     }
 
+    /* Making a getter for this isn't nice, but its the only way we can
+     * read this value from a deserialised chain */
+    public long problemDifficulty() {
+        return this.problemDifficulty;
+    }
+
     /**
      * validate
      *

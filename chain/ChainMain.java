@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -111,6 +112,8 @@ public class ChainMain {
     }
 
     public static LedgerChain fetchInitialLedgerAndChain(String host,
+                                                         String truststore,
+                                                         String truststorePassword,
                                                          String genesisBlockPublicKey,
                                                          Integer genesisBlockAmount,
                                                          String signGenesisBlockWith,
@@ -121,7 +124,14 @@ public class ChainMain {
                                                                                         InvalidKeySpecException,
                                                                                         SignatureException,
                                                                                         Blockchain.WalkFailedException,
-                                                                                        Block.MiningException {
+                                                                                        Block.MiningException,
+                                                                                        FileNotFoundException,
+                                                                                        CertificateException,
+                                                                                        KeyStoreException,
+                                                                                        KeyManagementException,
+                                                                                        UnrecoverableKeyException,
+                                                                                        MalformedURLException,
+                                                                                        Blockchain.IntegrityCheckFailedException {
         if (host == null) {
             System.out.println("No host specified to download blockchain from, " +
                                "creating genesis node with public key " +
@@ -157,14 +167,23 @@ public class ChainMain {
             }
         }
 
-        /* TODO: Implement ability to download, parse and validate existing
-         * blockchain */
-        return null;
+        /* Download and parse an existing blockchain from some other server */
+        System.out.println("Downloading blockchain from host " + host);
+        WalletOrchestrator orchestrator = new WalletOrchestrator(host, truststore, truststorePassword);
+        Blockchain chain = orchestrator.fetchBlockchain();
+        BlockMiner miner = new BlockMiner(chain,
+                                          new TransactionLoggingMiningObserver(),
+                                          problemDifficulty);
+        AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
+        return new ChainMain.LedgerChain(ledger, chain, miner, 0);
     }
 
     public static class Arguments {
         @Option(name="-keystore", usage="The Java KeyStore file to use (mandatory)", metaVar="KEYSTORE")
         public String keystore;
+
+        @Option(name="-truststore", usage="The Java KeyStore file to use when trusting other servers", metaVar="KEYSTORE")
+        public String truststore;
 
         @Option(name="-corrupt-chain-with",
                 usage="Op to corrupt chain with (MODIFY_TX, INVALID_TX, BAD_SIGNATURE, BAD_POW)",
@@ -221,6 +240,14 @@ public class ChainMain {
                     );
                 }
 
+                if (downloadBlockchainFrom != null && truststore == null) {
+                    throw new CmdLineException(
+                        parser,
+                        "Must provide a -truststore when specifying " +
+                        "-download-blockchain-from"
+                    );
+                }
+
                 if (corruptChainWith != null) {
                     /* Check to make sure that it is a valid operation */
                     List<String> validOps = Arrays.asList(new String[] {
@@ -238,6 +265,10 @@ public class ChainMain {
 
                 if (System.getenv("KEYSTORE_PASSWORD") == null) {
                     throw new CmdLineException(parser, "Must set KEYSTORE_PASSWORD in the environment");
+                }
+
+                if (System.getenv("TRUSTSTORE_PASSWORD") == null && truststore != null) {
+                    throw new CmdLineException(parser, "Must set TRUSTSTORE_PASSWORD in the environment when using -truststore");
                 }
             } catch (CmdLineException e) {
                 System.err.println(e.getMessage());
@@ -395,7 +426,10 @@ public class ChainMain {
                                                   UnrecoverableKeyException,
                                                   SignatureException,
                                                   Blockchain.WalkFailedException,
-                                                  Block.MiningException {
+                                                  Block.MiningException,
+                                                  FileNotFoundException,
+                                                  MalformedURLException,
+                                                  Blockchain.IntegrityCheckFailedException {
         Arguments arguments = new Arguments(args);
         Security.addProvider(new BouncyCastleProvider());
 
@@ -424,6 +458,8 @@ public class ChainMain {
         /* We need to create the ledger and chain at the same time so that
          * we can track all the transactions, including the genesis node */
         ChainMain.LedgerChain lc = fetchInitialLedgerAndChain(arguments.downloadBlockchainFrom,
+                                                              arguments.truststore,
+                                                              System.getenv("TRUSTSTORE_PASSWORD"),
                                                               arguments.genesisBlockPublicKey,
                                                               arguments.genesisBlockAmount,
                                                               arguments.signGensisBlockWith,
