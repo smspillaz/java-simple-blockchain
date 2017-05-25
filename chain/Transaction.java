@@ -1,6 +1,8 @@
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import java.nio.ByteBuffer;
+
 import javax.xml.bind.DatatypeConverter;
 
 public class Transaction {
@@ -27,14 +29,16 @@ public class Transaction {
         this.rPubKey = new byte[Globals.nBytesKeys];
         System.arraycopy(byteArray, Globals.nBytesKeys, this.rPubKey, 0, Globals.nBytesKeys);
 
-        this.amount = Globals.readIntFromByteArray(byteArray, Globals.nBytesKeys * 2, Globals.nBytesAmount);
+        this.amount = ByteBuffer.wrap(byteArray,
+                                      Globals.nBytesKeys * 2,
+                                      Globals.nBytesAmount).getInt();
     }
 
     public byte[] serialize() {
         return Globals.concatByteArrays(new byte[][]{
             this.sPubKey,
             this.rPubKey,
-            Globals.convertToByteArray(this.amount, Globals.nBytesAmount)
+            ByteBuffer.allocate(Globals.nBytesAmount).putInt(this.amount).array(),
         });
     }
 

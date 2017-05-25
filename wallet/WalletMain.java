@@ -11,6 +11,8 @@ import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 
+import java.nio.ByteBuffer;
+
 import javax.xml.bind.DatatypeConverter;
 
 import java.security.NoSuchAlgorithmException;
@@ -353,8 +355,7 @@ public class WalletMain extends Application {
     private void fetchWindowData(WalletConnectionLoggingWrapper orchestrator) {
         /* Get the transaction log for our wallet ID (hardcoded to 0) */
         TransactionHistory history = orchestrator.history(
-            DatatypeConverter.printHexBinary(Globals.convertToByteArray(0L,
-                                                                        Globals.nBytesKeys))
+            DatatypeConverter.printHexBinary(ByteBuffer.allocate(Globals.nBytesNonce).putInt(0).array())
         );
 
         if (history == null) {
