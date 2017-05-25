@@ -85,10 +85,11 @@ public class ChainMain {
     }
 
     public static class LedgerChain {
-        Ledger ledger;
+        AsynchronouslyMutableLedger ledger;
         Blockchain chain;
 
-        public LedgerChain(Ledger ledger, Blockchain chain) {
+        public LedgerChain(AsynchronouslyMutableLedger ledger,
+                           Blockchain chain) {
             this.ledger = ledger;
             this.chain = chain;
         }
@@ -117,7 +118,8 @@ public class ChainMain {
 
             try {
                 Blockchain chain = new Blockchain(problemDifficulty);
-                Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+                BlockMiner miner = new BlockMiner(chain, problemDifficulty);
+                AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
                 ledger.appendSignedTransaction(new SignedObject(
                     new Transaction(pubKey,
                                     pubKey,
@@ -383,7 +385,7 @@ public class ChainMain {
                                                               arguments.signGensisBlockWith,
                                                               arguments.problemDifficulty);
         Blockchain chain = lc.chain;
-        Ledger ledger = lc.ledger;
+        AsynchronouslyMutableLedger ledger = lc.ledger;
 
         if (arguments.corruptChainWith != null) {
             performChainCorruption(chain, ledger, arguments.corruptChainWith, arguments.problemDifficulty);
