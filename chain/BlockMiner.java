@@ -15,13 +15,11 @@ public class BlockMiner {
         void blockMined(byte[] payload);
     }
 
-    public Blockchain chain;
     private long problemDifficulty;
     private transient HashWorker worker;
 
     public BlockMiner(Blockchain sink,
                       long problemDifficulty) {
-        this.chain = sink;
         this.problemDifficulty = problemDifficulty;
         this.worker = new HashWorker(sink, null);
     }
@@ -29,7 +27,6 @@ public class BlockMiner {
     public BlockMiner(Blockchain sink,
                       MiningObserver observer,
                       long problemDifficulty) {
-        this.chain = sink;
         this.problemDifficulty = problemDifficulty;
         this.worker = new HashWorker(sink, observer);
     }
