@@ -135,7 +135,11 @@ public class BlockMiner {
                                                             nonce,
                                                             parentHash));
                             } catch (NoSuchAlgorithmException e) {
+                                /* Should never happen */
+                                throw new RuntimeException(e.getMessage());
                             } catch (Block.MiningException e) {
+                                /* Not fatal, but we should still report it */
+                                System.err.println(e.getMessage());
                             }
                             break;
                         }
