@@ -1,3 +1,6 @@
+import java.util.List;
+import java.util.LinkedList;
+
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -11,6 +14,7 @@ import java.security.NoSuchProviderException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.After;
 import org.junit.Before;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -21,6 +25,8 @@ public class TestBase {
   protected KeyPair receiverKeys;
 
   protected long problemDifficulty = 2;
+
+  List<Blockchain> chainsToCleanUp;
 
   @Before
   public void setUp() throws SignatureException,
@@ -34,6 +40,20 @@ public class TestBase {
 
     senderKeys = generator.generateKeyPair();
     receiverKeys = generator.generateKeyPair();
+
+    this.chainsToCleanUp = new LinkedList<Blockchain>();
+  }
+
+  @After
+  public void tearDown() {
+    for (Blockchain chain : this.chainsToCleanUp) {
+      chain.shutdown();
+    }
+  }
+
+  Blockchain registerForCleanup(Blockchain chain) {
+    this.chainsToCleanUp.add(chain);
+    return chain;
   }
 
   static SignedObject convenienceTransactionFromIntegerKeys(PublicKey sPubKey,

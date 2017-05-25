@@ -84,18 +84,28 @@ public class ChainMain {
         return context;
     }
 
-    public static Blockchain fetchInitialBlockchain(String host,
-                                                    String genesisBlockPublicKey,
-                                                    Integer genesisBlockAmount,
-                                                    String signGenesisBlockWith,
-                                                    Long problemDifficulty) throws NoSuchAlgorithmException,
-                                                                                   NoSuchProviderException,
-                                                                                   IOException,
-                                                                                   InvalidKeyException,
-                                                                                   InvalidKeySpecException,
-                                                                                   SignatureException,
-                                                                                   Blockchain.WalkFailedException,
-                                                                                   Block.MiningException {
+    public static class LedgerChain {
+        Ledger ledger;
+        Blockchain chain;
+
+        public LedgerChain(Ledger ledger, Blockchain chain) {
+            this.ledger = ledger;
+            this.chain = chain;
+        }
+    }
+
+    public static LedgerChain fetchInitialLedgerAndChain(String host,
+                                                         String genesisBlockPublicKey,
+                                                         Integer genesisBlockAmount,
+                                                         String signGenesisBlockWith,
+                                                         Long problemDifficulty) throws NoSuchAlgorithmException,
+                                                                                        NoSuchProviderException,
+                                                                                        IOException,
+                                                                                        InvalidKeyException,
+                                                                                        InvalidKeySpecException,
+                                                                                        SignatureException,
+                                                                                        Blockchain.WalkFailedException,
+                                                                                        Block.MiningException {
         if (host == null) {
             System.out.println("No host specified to download blockchain from, " +
                                "creating genesis node with public key " +
@@ -106,19 +116,20 @@ public class ChainMain {
             byte[] pubKey = DatatypeConverter.parseHexBinary(genesisBlockPublicKey);
 
             try {
-                return new Blockchain(
-                    new SignedObject(
-                        new Transaction(pubKey,
-                                        pubKey,
-                                        50).serialize(),
-                        KeyFactory.getInstance("RSA", "BC").generatePrivate(
-                            new PKCS8EncodedKeySpec(
-                                KeyGenerator.readKeyFromFile(signGenesisBlockWith)
-                            )
+                Blockchain chain = new Blockchain(problemDifficulty);
+                Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+                ledger.appendSignedTransaction(new SignedObject(
+                    new Transaction(pubKey,
+                                    pubKey,
+                                    50).serialize(),
+                    KeyFactory.getInstance("RSA", "BC").generatePrivate(
+                        new PKCS8EncodedKeySpec(
+                            KeyGenerator.readKeyFromFile(signGenesisBlockWith)
                         )
-                    ).serialize(),
-                    problemDifficulty
-                );
+                    )
+                ));
+
+                return new ChainMain.LedgerChain(ledger, chain);
             } catch (FileNotFoundException e) {
                 System.err.println("Error creating genesis node, the genesis " +
                                    "block signing key was not found at " + signGenesisBlockWith +
@@ -364,12 +375,16 @@ public class ChainMain {
             }
         });
 
-        Blockchain chain = fetchInitialBlockchain(arguments.downloadBlockchainFrom,
-                                                  arguments.genesisBlockPublicKey,
-                                                  arguments.genesisBlockAmount,
-                                                  arguments.signGensisBlockWith,
-                                                  arguments.problemDifficulty);
-        Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+        /* We need to create the ledger and chain at the same time so that
+         * we can track all the transactions, including the genesis node */
+        ChainMain.LedgerChain lc = fetchInitialLedgerAndChain(arguments.downloadBlockchainFrom,
+                                                              arguments.genesisBlockPublicKey,
+                                                              arguments.genesisBlockAmount,
+                                                              arguments.signGensisBlockWith,
+                                                              arguments.problemDifficulty);
+        Blockchain chain = lc.chain;
+        Ledger ledger = lc.ledger;
+
         if (arguments.corruptChainWith != null) {
             performChainCorruption(chain, ledger, arguments.corruptChainWith, arguments.problemDifficulty);
         }
@@ -383,12 +398,17 @@ public class ChainMain {
                 OutputStream stream = exchange.getResponseBody();
 
                 try {
+                    /* Put the transaction on the queue. We won't be able to
+                     * validate it until we've finished mining all our other
+                     * blocks, so the client will just have to wait */
                     Transaction transaction = new Transaction(DatatypeConverter.parseHexBinary(record.src),
                                                               DatatypeConverter.parseHexBinary(record.dst),
                                                               record.amount);
                     SignedObject blob = new SignedObject(transaction.serialize(),
                                                          DatatypeConverter.parseHexBinary(record.signature));
-                    String response = Boolean.valueOf(ledger.appendSignedTransaction(blob)).toString();
+                    ledger.appendSignedTransaction(blob);
+
+                    String response = Boolean.valueOf(true).toString();
 
                     exchange.sendResponseHeaders(200, response.length());
 
