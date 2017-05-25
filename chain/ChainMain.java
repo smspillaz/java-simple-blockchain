@@ -1,7 +1,6 @@
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -288,7 +287,7 @@ public class ChainMain {
                                               String op,
                                               long problemDifficulty) throws Blockchain.WalkFailedException,
                                                                              Block.MiningException {
-        int indexToModify = new Random().nextInt() % chain.length();
+        int indexToModify = ((int) Math.ceil(Math.random())) % chain.length();
         chain.walk(new Blockchain.BlockEnumerator() {
             public void consume(int index, Block block) {
                 StringBuilder msg = new StringBuilder();
