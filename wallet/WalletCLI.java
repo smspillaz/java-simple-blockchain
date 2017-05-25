@@ -61,7 +61,7 @@ public class WalletCLI {
                     throw new CmdLineException(parser, "Must provide a -wallet-id");
                 }
 
-                if ((recipient != null) &&
+                if (recipient != null &&
                     (signingKey == null || amount == null)) {
                     throw new CmdLineException(parser, "Must provide a -signing-key and -amount if specifying a -recipient");
                 }
