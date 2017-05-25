@@ -9,6 +9,12 @@ import java.util.concurrent.LinkedBlockingQueue;
  * asynchronous mutability. Mining blocks is a CPU intensive task.
  */
 public class BlockMiner {
+    public static interface MiningObserver {
+        /* Called when a block gets mined, with the payload contents
+         * of that block. Callers might find it interesting */
+        void blockMined(byte[] payload);
+    }
+
     public Blockchain chain;
     private long problemDifficulty;
     private transient HashWorker worker;
@@ -17,7 +23,15 @@ public class BlockMiner {
                       long problemDifficulty) {
         this.chain = sink;
         this.problemDifficulty = problemDifficulty;
-        this.worker = new HashWorker(sink);
+        this.worker = new HashWorker(sink, null);
+    }
+
+    public BlockMiner(Blockchain sink,
+                      MiningObserver observer,
+                      long problemDifficulty) {
+        this.chain = sink;
+        this.problemDifficulty = problemDifficulty;
+        this.worker = new HashWorker(sink, observer);
     }
 
     public void shutdown() {
@@ -80,12 +94,15 @@ public class BlockMiner {
 
         public BlockingQueue<Command<HashJob>> jobs;
         private Blockchain chain;
+        private BlockMiner.MiningObserver observer;
         private int jobsProcessed;
         private int jobsSent;
 
-        public HashWorker(Blockchain chain) {
+        public HashWorker(Blockchain chain,
+                          BlockMiner.MiningObserver observer) {
             this.jobs = new LinkedBlockingQueue<Command<HashJob>>();
             this.chain = chain;
+            this.observer = observer;
             this.jobsProcessed = new Integer(0);
             this.jobsSent = new Integer(0);
 
@@ -113,6 +130,10 @@ public class BlockMiner {
                                 int nonce = Block.mineNonce(job.payload,
                                                             parentHash,
                                                             job.problemDifficulty);
+                                if (observer != null) {
+                                    observer.blockMined(job.payload);
+                                }
+
                                 this.chain.append(new Block(job.payload,
                                                             nonce,
                                                             parentHash));

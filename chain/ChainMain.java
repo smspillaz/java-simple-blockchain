@@ -87,11 +87,26 @@ public class ChainMain {
     public static class LedgerChain {
         AsynchronouslyMutableLedger ledger;
         Blockchain chain;
+        BlockMiner miner;
+        int postedTransactionId;
 
         public LedgerChain(AsynchronouslyMutableLedger ledger,
-                           Blockchain chain) {
+                           Blockchain chain,
+                           BlockMiner miner,
+                           int postedTransactionId) {
             this.ledger = ledger;
             this.chain = chain;
+            this.miner = miner;
+            this.postedTransactionId = postedTransactionId;
+        }
+    }
+
+    public static class TransactionLoggingMiningObserver implements BlockMiner.MiningObserver {
+        public void blockMined(byte[] payload) {
+            SignedObject blob = new SignedObject(payload);
+            Transaction transaction = new Transaction(blob.payload);
+
+            System.out.println("[chain] Mined transaction " + transaction);
         }
     }
 
@@ -118,7 +133,9 @@ public class ChainMain {
 
             try {
                 Blockchain chain = new Blockchain(problemDifficulty);
-                BlockMiner miner = new BlockMiner(chain, problemDifficulty);
+                BlockMiner miner = new BlockMiner(chain,
+                                                  new TransactionLoggingMiningObserver(),
+                                                  problemDifficulty);
                 AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
                 ledger.appendSignedTransaction(new SignedObject(
                     new Transaction(pubKey,
