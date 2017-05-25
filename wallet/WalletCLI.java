@@ -10,8 +10,6 @@ import java.security.SignatureException;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 
-import javafx.application.Platform;
-
 import javax.xml.bind.DatatypeConverter;
 
 import org.kohsuke.args4j.Argument;
@@ -68,9 +66,8 @@ public class WalletCLI {
                     throw new CmdLineException(parser, "Must set KEYSTORE_PASSWORD in the environment");
                 }
             } catch (CmdLineException e) {
-                System.err.println(e.getMessage());
                 parser.printUsage(System.err);
-                Platform.exit();
+                throw new RuntimeException(e.getMessage());
             }
         }
     }
