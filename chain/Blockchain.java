@@ -154,7 +154,8 @@ public class Blockchain {
                     index,
                     block,
                     " Expected hash " + DatatypeConverter.printHexBinary(block.hash) +
-                    " to have at least eight leading zeroes, but it did not. The " +
+                    " to have at least " + problemDifficulty +
+                    " leading zeroes, but it did not. The " +
                     " block was probably not mined correctly"
                 );
             }
