@@ -5,6 +5,8 @@ import java.lang.Math;
 
 import java.math.BigInteger;
 
+import java.nio.ByteBuffer;
+
 import javax.xml.bind.DatatypeConverter;
 
 public class Block {
@@ -66,11 +68,11 @@ public class Block {
 
         // cycle through all 2 ^ 630 values until loops back to 0
         for (int nonce = 0; nonce <= Globals.maxValNonce; nonce++) {
-            System.arraycopy(Globals.convertToByteArray((long) nonce, Globals.nBytesBlockChainHash),
+            System.arraycopy(ByteBuffer.allocate(Globals.nBytesNonce).putInt(nonce).array(),
                              0,
                              blockContents,
                              payload.length + parentHash.length,
-                             Globals.nBytesBlockChainHash);
+                             Globals.nBytesNonce);
 
             byte[] blockChainHash = Blockchain.mkHash(blockContents, 0, blockContents.length);
 
@@ -94,9 +96,9 @@ public class Block {
         this.payload = new byte[payloadLength];
         System.arraycopy(contents, 0, this.payload, 0, payloadLength);
 
-        this.nonce = Globals.readIntFromByteArray(contents,
-                                                  payloadLength,
-                                                  Globals.nBytesNonce);
+        this.nonce = ByteBuffer.wrap(contents,
+                                     payloadLength,
+                                     Globals.nBytesNonce).getInt();
         this.hash = new byte[Globals.nBytesBlockChainHash];
         System.arraycopy(contents,
                          payloadLength + Globals.nBytesNonce,
@@ -108,7 +110,7 @@ public class Block {
     public byte[] serialize() {
         return Globals.concatByteArrays(new byte[][] {
             this.payload,
-            Globals.convertToByteArray(this.nonce, Globals.nBytesNonce),
+            ByteBuffer.allocate(Globals.nBytesNonce).putInt(this.nonce).array(),
             this.hash != null ? this.hash : new byte[0]
         });
     }
