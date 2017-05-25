@@ -213,6 +213,34 @@ public class LedgerTest extends TestBase {
   }
 
   @Test
+  public void testLedgerAddSelfTransaction() throws NoSuchAlgorithmException,
+                                                    Blockchain.WalkFailedException,
+                                                    Block.MiningException,
+                                                    InvalidKeyException,
+                                                    SignatureException {
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
+
+    miner.waitFor(
+      ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                           senderKeys.getPublic(),
+                                                                           50,
+                                                                           senderKeys.getPrivate()))
+    );
+
+    /* Subsequent self-transactions are not permitted */
+    byte[] tip = chain.tipHash();
+    miner.waitFor(
+      ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
+                                                                           senderKeys.getPublic(),
+                                                                           20,
+                                                                           senderKeys.getPrivate()))
+    );
+    assertThat(chain.tipHash(), equalTo(tip));
+  }
+
+  @Test
   public void testLedgerAddGoodTransactionModifyChain() throws NoSuchAlgorithmException,
                                                                Blockchain.WalkFailedException,
                                                                Block.MiningException,

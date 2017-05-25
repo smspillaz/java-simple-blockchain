@@ -118,6 +118,12 @@ public class Ledger {
                                                                    transaction.amount);
                 }
 
+                /* Self-transactions are not valid on genesis blocks */
+                if (index > 0 && srcMapKey.equals(dstMapKey)) {
+                    throw new Blockchain.WalkFailedException(transaction +
+                                                             " is a self transaction on a non-genesis block");
+                }
+
                 boolean signatureVerificationResult = false;
 
                 try {
