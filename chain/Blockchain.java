@@ -1,6 +1,8 @@
 import java.security.DigestException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
@@ -23,7 +25,138 @@ import java.security.MessageDigest;
  * genesis to the child-most block in the chain */
 
 public class Blockchain {
+    /**
+     * PayloadValidator
+     *
+     * This interface describes how a payload to be appended to the
+     * blockchain should be validated just before it is mined. The reason
+     * why we need to have a separate interface here is because validation
+     * might depend on the underlying chain being up to date. We want to check
+     * to see if this payload makes any sense before appending to the chain
+     * where it is stuck there permanently */
+    public static interface PayloadValidator {
+        /* Return true if the underlying payload should be appended to
+         * the blockchain and false otherwise */
+        public boolean validate(byte[] payload, int index);
+
+        /* Couldn't mine a block for some reason. Report this to
+         * whoever might be interested */
+        public void onMiningFailure(byte[] payload);
+    }
+
+    public static class HashWorker extends Thread {
+        public static class HashJob {
+            public byte[] payload;
+            Blockchain.PayloadValidator validator;
+            long problemDifficulty;
+
+            public HashJob(byte[] payload,
+                           long problemDifficulty,
+                           Blockchain.PayloadValidator validator) {
+                this.payload = new byte[payload.length];
+
+                System.arraycopy(payload, 0, this.payload, 0, payload.length);
+                this.problemDifficulty = problemDifficulty;
+                this.validator = validator;
+            }
+        }
+
+        public static class Command<E> {
+            static final int END_OF_QUEUE = 1;
+            static final int HASH_JOB = 2;
+
+            public E payload;
+            public int cmd;
+
+            public Command(int cmd, E payload) {
+                this.cmd = cmd;
+                this.payload = payload;
+            }
+        }
+
+        public BlockingQueue<Command<HashJob>> jobs;
+        private List<Block> chain;
+        private int jobsProcessed;
+        private int jobsSent;
+
+        public HashWorker(List<Block> chain) {
+            this.jobs = new LinkedBlockingQueue<Command<HashJob>>();
+            this.chain = chain;
+            this.jobsProcessed = new Integer(0);
+            this.jobsSent = new Integer(0);
+
+            this.start();
+        }
+
+        public void run() {
+            while (true) {
+                try {
+                    Command<HashJob> command = jobs.take();
+
+                    switch(command.cmd) {
+                        case Command.END_OF_QUEUE:
+                            return;
+                        case Command.HASH_JOB: {
+                            HashJob job = command.payload;
+
+                            try {
+                                if (job.validator != null &&
+                                    !job.validator.validate(job.payload, chain.size())) {
+                                    continue;
+                                }
+
+                                byte[] parentHash = chain.size() > 0 ? chain.get(chain.size() - 1).hash : new byte[0];
+                                int nonce = Block.mineNonce(job.payload,
+                                                            parentHash,
+                                                            job.problemDifficulty);
+                                this.chain.add(new Block(job.payload,
+                                                         nonce,
+                                                         parentHash));
+                            } catch (NoSuchAlgorithmException e) {
+                            } catch (Block.MiningException e) {
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                } catch (InterruptedException e) {
+                } finally {
+                    ++this.jobsProcessed;
+                }
+            }
+        }
+
+        public int pushJob(HashWorker.HashJob job) {
+            this.jobs.add(new Command(Command.HASH_JOB, job));
+            return ++this.jobsSent;
+        }
+
+        public void waitFor(int index) {
+            /* Just spin-wait until we have dealt with this index */
+            while (this.jobsProcessed < index) {
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+
+        public void finish() {
+            this.jobs.add(new Command(Command.END_OF_QUEUE, null));
+        }
+
+        public void finishAndWait() {
+            finish();
+            try {
+                this.join();
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+
     private List<Block> chain;
+    private transient HashWorker worker;
     private long problemDifficulty;
 
     public static byte[] mkHash(byte[] message, int offset, int len) throws NoSuchAlgorithmException {
@@ -59,14 +192,20 @@ public class Blockchain {
         return digest.digest(buf);
     }
 
-    public Blockchain(byte[] genesisPayload,
-                      long problemDifficulty) throws NoSuchAlgorithmException,
+    public Blockchain(long problemDifficulty) throws NoSuchAlgorithmException,
                                                      Block.MiningException {
         this.chain = new ArrayList<Block>();
         this.problemDifficulty = problemDifficulty;
+        this.worker = new HashWorker(this.chain);
+    }
 
-        /* This will auto-mine the nonce and add a new block with this payload */
-        appendPayload(genesisPayload);
+    public void shutdown() {
+        this.worker.finishAndWait();
+    }
+
+    public Blockchain waitFor(int index) {
+        this.worker.waitFor(index);
+        return this;
     }
 
     public static class WalkFailedException extends Exception {
@@ -164,18 +303,36 @@ public class Blockchain {
      * to the chain.
      *
      * Note that this method will attempt to mine the block (by computing
-     * its nonce) before appending it to the chain
+     * its nonce) before appending it to the chain. This happens asynchronously.
      */
-    public void appendPayload(byte[] payload) throws NoSuchAlgorithmException,
-                                                     Block.MiningException {
-        byte[] parentHash = parentBlockHash(chain.size());
-        int nonce = Block.mineNonce(payload, parentHash, problemDifficulty);
-        chain.add(new Block(payload, nonce, parentHash));
+    public int appendPayload(byte[] payload) {
+        return this.appendPayload(payload, null);
+    }
+
+    /* Append a new payload to the chain by creating a new block for it
+     * with a reference to the child most block as its parent. The passed
+     * in PayloadValidator will validate that the payload is sane
+     * just before it is mined and the chain is guaranteed to be up to date
+     * by the time that the validate method is called.
+     *
+     * The return value is the job identifier for the mining process. Since
+     * mining can take some time and we want the server to return straight
+     * away, the chain is not guarnateed to reflect the state of this payload
+     * as soon as it is appended. If you want that guarantee, you can use
+     * Blockchain.waitFor(jobId) to wait until that job identifier has been
+     * processed */
+    public int appendPayload(byte[] payload, PayloadValidator validator) {
+        return worker.pushJob(new HashWorker.HashJob(payload,
+                                                     problemDifficulty,
+                                                     validator));
     }
 
     /**
      * This is just a convenience method to validate that a chain's child most
-     * block is what you expect it to be
+     * block is what you expect it to be.
+     *
+     * Since the chain mining process operates asynchronously, you should use
+     * Blockchain.waitFor to ensure that the chain is up to date.
      */
     public byte[] tipHash() {
         Block lastBlock = chain.get(chain.size() - 1);
