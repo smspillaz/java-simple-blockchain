@@ -26,7 +26,7 @@ public class TestBase {
 
   protected long problemDifficulty = 2;
 
-  List<Blockchain> chainsToCleanUp;
+  List<BlockMiner> minersToCleanUp;
 
   @Before
   public void setUp() throws SignatureException,
@@ -41,19 +41,19 @@ public class TestBase {
     senderKeys = generator.generateKeyPair();
     receiverKeys = generator.generateKeyPair();
 
-    this.chainsToCleanUp = new LinkedList<Blockchain>();
+    this.minersToCleanUp = new LinkedList<BlockMiner>();
   }
 
   @After
   public void tearDown() {
-    for (Blockchain chain : this.chainsToCleanUp) {
-      chain.shutdown();
+    for (BlockMiner miner : this.minersToCleanUp) {
+      miner.shutdown();
     }
   }
 
-  Blockchain registerForCleanup(Blockchain chain) {
-    this.chainsToCleanUp.add(chain);
-    return chain;
+  BlockMiner registerForCleanup(BlockMiner miner) {
+    this.minersToCleanUp.add(miner);
+    return miner;
   }
 
   static SignedObject convenienceTransactionFromIntegerKeys(PublicKey sPubKey,

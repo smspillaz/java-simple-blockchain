@@ -22,9 +22,10 @@ public class BlockchainTest extends TestBase {
                                            Block.MiningException,
                                            InvalidKeyException,
                                            SignatureException {
-    Blockchain chain = registerForCleanup(new Blockchain(problemDifficulty));
-    chain.waitFor(
-      chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    miner.waitFor(
+      miner.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                                        senderKeys.getPublic(),
                                                                        50,
                                                                        senderKeys.getPrivate()), null)
@@ -38,9 +39,10 @@ public class BlockchainTest extends TestBase {
                                                Block.MiningException,
                                                InvalidKeyException,
                                                SignatureException {
-    Blockchain chain = registerForCleanup(new Blockchain(problemDifficulty));
-    chain.waitFor(
-      chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    miner.waitFor(
+      miner.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                                        senderKeys.getPublic(),
                                                                        50,
                                                                        senderKeys.getPrivate()), null)
@@ -57,8 +59,9 @@ public class BlockchainTest extends TestBase {
                                                          Block.MiningException,
                                                          InvalidKeyException,
                                                          SignatureException {
-    Blockchain chain = registerForCleanup(new Blockchain(problemDifficulty));
-    Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
     ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
                                                                      senderKeys.getPublic(),
                                                                      50,
@@ -72,7 +75,7 @@ public class BlockchainTest extends TestBase {
                                                                    receiverKeys.getPublic(),
                                                                    10,
                                                                    senderKeys.getPrivate()));
-    chain.waitFor(
+    miner.waitFor(
       ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
                                                                            receiverKeys.getPublic(),
                                                                            10,
@@ -91,9 +94,10 @@ public class BlockchainTest extends TestBase {
                                                                   Block.MiningException,
                                                                   InvalidKeyException,
                                                                   SignatureException {
-    Blockchain chain = registerForCleanup(new Blockchain(problemDifficulty));
-    chain.waitFor(
-      chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    miner.waitFor(
+      miner.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                      senderKeys.getPublic(),
                                                      50,
                                                      senderKeys.getPrivate()))
@@ -124,9 +128,10 @@ public class BlockchainTest extends TestBase {
                                                                  Block.MiningException,
                                                                  InvalidKeyException,
                                                                  SignatureException {
-    Blockchain chain = registerForCleanup(new Blockchain(problemDifficulty));
-    chain.waitFor(
-      chain.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    miner.waitFor(
+      miner.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),
                                                                        senderKeys.getPublic(),
                                                                        50,
                                                                        senderKeys.getPrivate()), null)
@@ -155,10 +160,9 @@ public class BlockchainTest extends TestBase {
                                                                       Block.MiningException,
                                                                       InvalidKeyException,
                                                                       SignatureException {
-    Blockchain chain = registerForCleanup(new Blockchain(
-      problemDifficulty
-    ));
-    Ledger ledger = new Ledger(chain, new ArrayList<Ledger.TransactionObserver>());
+    Blockchain chain = new Blockchain(problemDifficulty);
+    BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
+    AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
     ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
                                                                          senderKeys.getPublic(),
                                                                          50,
@@ -171,7 +175,7 @@ public class BlockchainTest extends TestBase {
                                                                    receiverKeys.getPublic(),
                                                                    10,
                                                                    senderKeys.getPrivate()));
-    chain.waitFor(
+    miner.waitFor(
       ledger.appendSignedTransaction(convenienceTransactionFromIntegerKeys(senderKeys.getPublic(),
                                                                            receiverKeys.getPublic(),
                                                                            10,
