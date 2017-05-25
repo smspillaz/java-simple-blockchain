@@ -15,7 +15,16 @@ import subprocess
 
 import shutil
 
+import socket
+
 import sys
+
+
+def get_ip_address():
+    """Get the IP address of this machine."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    return s.getsockname()[0]
 
 
 def main(args):
@@ -50,6 +59,8 @@ def main(args):
         "-dname",
         "CN={}, OU=CSSE, O=University of Western Australia, "
         "L=Perth, S=Western Australia, C=AU".format(args.host),
+        "-ext",
+        "san=dns:{},ip:{}".format(args.host, get_ip_address()),
         "-keystore",
         os.path.join("keys", "server.jks"),
         "-keyalg",
