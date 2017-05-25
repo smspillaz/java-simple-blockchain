@@ -100,8 +100,8 @@ public class BlockMiner {
             this.jobs = new LinkedBlockingQueue<Command<HashJob>>();
             this.chain = chain;
             this.observer = observer;
-            this.jobsProcessed = new Integer(0);
-            this.jobsSent = new Integer(0);
+            this.jobsProcessed = 0;
+            this.jobsSent = 0;
 
             this.start();
         }
