@@ -489,7 +489,7 @@ public class ChainMain {
                                                          DatatypeConverter.parseHexBinary(record.signature));
                     ledger.appendSignedTransaction(blob);
 
-                    String response = Boolean.valueOf(true).toString();
+                    String response = Boolean.TRUE.toString();
 
                     exchange.sendResponseHeaders(200, response.length());
 
