@@ -98,7 +98,7 @@ public class WalletOrchestrator {
 
     public String transaction(String src,
                               String dst,
-                              long amount,
+                              int amount,
                               byte[] signingKey) throws MalformedURLException,
                                                         IOException,
                                                         InvalidKeyException,

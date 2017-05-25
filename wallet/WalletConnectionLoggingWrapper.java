@@ -54,7 +54,7 @@ class WalletConnectionLoggingWrapper {
 
     public void transaction(String src,
                             String dst,
-                            long amount,
+                            int amount,
                             byte[] signingKey) {
         if (this.wallet != null) {
             logger.write("Performing Transaction");

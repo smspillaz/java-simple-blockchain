@@ -58,7 +58,7 @@ public class TestBase {
 
   static SignedObject convenienceTransactionFromIntegerKeys(PublicKey sPubKey,
                                                             PublicKey rPubKey,
-                                                            long amount,
+                                                            int amount,
                                                             PrivateKey signingKey) throws NoSuchAlgorithmException,
                                                                                           InvalidKeyException,
                                                                                           SignatureException {
@@ -70,7 +70,7 @@ public class TestBase {
 
   static byte[] convenienceTransactionPayloadFromIntegerKeys(PublicKey sPubKey,
                                                              PublicKey rPubKey,
-                                                             long amount,
+                                                             int amount,
                                                              PrivateKey signingKey) throws NoSuchAlgorithmException,
                                                                                            InvalidKeyException,
                                                                                            SignatureException {

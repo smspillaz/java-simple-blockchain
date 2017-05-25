@@ -5,11 +5,11 @@ import javax.xml.bind.DatatypeConverter;
 
 public class Transaction {
     public byte[] rPubKey, sPubKey;
-    public long amount;
+    public int amount;
 
     public Transaction(byte[] sPubKey,
                        byte[] rPubKey,
-                       long amt) {
+                       int amt) {
         this.sPubKey = new byte[sPubKey.length];
         this.rPubKey = new byte[rPubKey.length];
 
