@@ -19,6 +19,8 @@ import org.kohsuke.args4j.Option;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public class WalletCLI {
     public static class Arguments {
         @Option(name="-keystore", usage="The Client-Side Java KeyStore to use (mandatory)", metaVar="KEYSTORE")
@@ -39,6 +41,8 @@ public class WalletCLI {
         @Option(name="-host", usage="The blockchain host to connect to (mandatory)", metaVar="HOST")
         public String host;
 
+        @SuppressFBWarnings(value="UR_UNINIT_READ",
+                            justification="Values are set by CmdLineParser")
         public Arguments(String args[]) {
             CmdLineParser parser = new CmdLineParser(this);
 
