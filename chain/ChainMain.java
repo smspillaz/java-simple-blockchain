@@ -138,7 +138,7 @@ public class ChainMain {
                                                   new TransactionLoggingMiningObserver(),
                                                   problemDifficulty);
                 AsynchronouslyMutableLedger ledger = new AsynchronouslyMutableLedger(chain, miner);
-                ledger.appendSignedTransaction(new SignedObject(
+                int postedTransactionId = ledger.appendSignedTransaction(new SignedObject(
                     new Transaction(pubKey,
                                     pubKey,
                                     50).serialize(),
@@ -149,7 +149,7 @@ public class ChainMain {
                     )
                 ));
 
-                return new ChainMain.LedgerChain(ledger, chain);
+                return new ChainMain.LedgerChain(ledger, chain, miner, postedTransactionId);
             } catch (FileNotFoundException e) {
                 System.err.println("Error creating genesis node, the genesis " +
                                    "block signing key was not found at " + signGenesisBlockWith +
@@ -402,8 +402,12 @@ public class ChainMain {
                                                               arguments.problemDifficulty);
         Blockchain chain = lc.chain;
         AsynchronouslyMutableLedger ledger = lc.ledger;
+        BlockMiner miner = lc.miner;
+        int postedTransactionId = lc.postedTransactionId;
 
         if (arguments.corruptChainWith != null) {
+            /* Wait for the first transaction to complete */
+            miner.waitFor(postedTransactionId);
             performChainCorruption(chain, ledger, arguments.corruptChainWith, arguments.problemDifficulty);
         }
 
