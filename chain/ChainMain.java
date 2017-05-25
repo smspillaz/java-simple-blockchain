@@ -300,9 +300,13 @@ public class ChainMain {
                          * one from the amount. This should be caught by the fact that
                          * the block doesn't hash correctly anymore. */
                         msg.append("subtracting 1 from the transaction amount");
-                        block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
-                            public void mutate(Transaction transaction) {
-                                transaction.amount -= 1;
+                        block.payload = SignedObject.withMutations(block.payload, new SignedObject.Mutator() {
+                            public void mutate(SignedObject blob) {
+                                blob.payload = Transaction.withMutations(blob.payload, new Transaction.Mutator() {
+                                    public void mutate(Transaction transaction) {
+                                        transaction.amount -= 1;
+                                    }
+                                });
                             }
                         });
                         break;
@@ -311,9 +315,13 @@ public class ChainMain {
                          * problem should be caught by the fact that transaction
                          * is nonsensical */
                         msg.append("negating the transaction amount");
-                        block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
-                            public void mutate(Transaction transaction) {
-                                transaction.amount *= 1;
+                        block.payload = SignedObject.withMutations(block.payload, new SignedObject.Mutator() {
+                            public void mutate(SignedObject blob) {
+                                blob.payload = Transaction.withMutations(blob.payload, new Transaction.Mutator() {
+                                    public void mutate(Transaction transaction) {
+                                        transaction.amount *= -1;
+                                    }
+                                });
                             }
                         });
                         rehashChainFromIndex(chain, index, problemDifficulty);
@@ -323,9 +331,13 @@ public class ChainMain {
                          * problem should be caught by the fact that the signature
                          * on the transaction is no longer valid */
                         msg.append("modifying the transaction amount but rehashing the block (and all children)");
-                        block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
-                            public void mutate(Transaction transaction) {
-                                transaction.amount -= 1;
+                        block.payload = SignedObject.withMutations(block.payload, new SignedObject.Mutator() {
+                            public void mutate(SignedObject blob) {
+                                blob.payload = Transaction.withMutations(blob.payload, new Transaction.Mutator() {
+                                    public void mutate(Transaction transaction) {
+                                        transaction.amount -= 1;
+                                    }
+                                });
                             }
                         });
                         rehashChainFromIndex(chain, index, problemDifficulty);
