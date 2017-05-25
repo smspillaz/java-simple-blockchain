@@ -72,6 +72,13 @@ public class AsynchronouslyMutableLedger extends Ledger {
                     return false;
                 }
 
+                /* Self-transactions are not valid on genesis blocks */
+                if (index > 0 && srcMapKey.equals(dstMapKey)) {
+                    logTransactionRejectionFailure(transaction,
+                                                   " is a self transaction on a non-genesis block");
+                    return false;
+                }
+
                 /* Check to make sure that the signature is valid on the blob */
                 boolean signatureVerificationResult = false;
 
