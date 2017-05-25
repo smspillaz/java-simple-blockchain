@@ -23,8 +23,6 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import javafx.application.Platform;
-
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
 import java.security.KeyFactory;
@@ -163,7 +161,7 @@ public class ChainMain {
                 System.err.println("Error creating genesis node, the genesis " +
                                    "block signing key was not found at " + signGenesisBlockWith +
                                    ": " + e.getMessage());
-                Platform.exit();
+                throw new RuntimeException(e.getMessage());
             }
         }
 
@@ -271,9 +269,8 @@ public class ChainMain {
                     throw new CmdLineException(parser, "Must set TRUSTSTORE_PASSWORD in the environment when using -truststore");
                 }
             } catch (CmdLineException e) {
-                System.err.println(e.getMessage());
                 parser.printUsage(System.err);
-                Platform.exit();
+                throw new RuntimeException(e.getMessage());
             }
         }
     }
@@ -292,8 +289,7 @@ public class ChainMain {
                             block.nonce = nonce;
                             block.hash = block.computeContentHash(chain.parentBlockHash(index));
                         } catch (NoSuchAlgorithmException e) {
-                            System.err.println(e.getMessage());
-                            Platform.exit();
+                            throw new RuntimeException(e.getMessage());
                         } catch (Block.MiningException e) {
                             throw new Blockchain.WalkFailedException(e.getMessage());
                         }
@@ -381,8 +377,7 @@ public class ChainMain {
                         try {
                             block.hash = block.computeContentHash(chain.parentBlockHash(index));
                         } catch (NoSuchAlgorithmException e) {
-                            System.err.println(e);
-                            Platform.exit();
+                            throw new RuntimeException(e.getMessage());
                         }
 
                         /* We rehash from this index + 1 onwards - we wanted to rehash

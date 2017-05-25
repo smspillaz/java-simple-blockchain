@@ -9,8 +9,6 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import javafx.application.Platform;
-
 class KeyGeneratorMain {
     public static class Arguments {
         @Option(name="-keyfile", usage="Where to store an RSA private key", metaVar="KEYSTORE")
@@ -26,9 +24,8 @@ class KeyGeneratorMain {
                     throw new CmdLineException(parser, "Must provide a -keyfile");
                 }
             } catch (CmdLineException e) {
-                System.err.println(e.getMessage());
                 parser.printUsage(System.err);
-                Platform.exit();
+                throw new RuntimeException(e.getMessage());
             }
         }
     }
@@ -40,10 +37,9 @@ class KeyGeneratorMain {
             System.out.println(KeyGenerator.generateRSAKeyPairIntoKeyFilePath(arguments.keyfile));
         } catch (FileNotFoundException ex) {
             System.err.println("Couldn't write file " + arguments.keyfile + ": " + ex.getMessage());
-            Platform.exit();
+            throw new RuntimeException(ex.getMessage());
         } catch (IOException ex) {
-            System.err.println(ex.getMessage());
-            Platform.exit();
+            throw new RuntimeException(ex.getMessage());
         }
     }
 }
