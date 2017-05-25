@@ -275,6 +275,14 @@ public class ChainMain {
         }
     }
 
+    /* Perform some corruption on the underlying chain itself, such that
+     * when clients download it they should be able to detect problems.
+     *
+     * Note that because the private key of a client is necessarily secret,
+     * we are unable to re-sign transactions once they have been modified -
+     * their signature is necessarily destroyed. However, the signature is
+     * always checked last in the validation process, which means that
+     * we can detect other problems beforehand */
     public static void performChainCorruption(Blockchain chain,
                                               Ledger ledger,
                                               String op,
@@ -289,7 +297,8 @@ public class ChainMain {
                     switch (op) {
                     case "MODIFY_TX":
                         /* Modify a transaction in flight, for instance, by subtracting
-                         * one from the amount */
+                         * one from the amount. This should be caught by the fact that
+                         * the block doesn't hash correctly anymore. */
                         msg.append("subtracting 1 from the transaction amount");
                         block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
                             public void mutate(Transaction transaction) {
@@ -298,7 +307,9 @@ public class ChainMain {
                         });
                         break;
                     case "INVALID_TX":
-                        /* Make a transaction negative */
+                        /* Make a transaction negative and remine it. This
+                         * problem should be caught by the fact that transaction
+                         * is nonsensical */
                         msg.append("negating the transaction amount");
                         block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
                             public void mutate(Transaction transaction) {
@@ -308,6 +319,9 @@ public class ChainMain {
                         rehashChainFromIndex(chain, index, problemDifficulty);
                         break;
                     case "BAD_SIGNATURE":
+                        /* Subtract one from the transaction and remine it. This
+                         * problem should be caught by the fact that the signature
+                         * on the transaction is no longer valid */
                         msg.append("modifying the transaction amount but rehashing the block (and all children)");
                         block.payload = Transaction.withMutations(block.payload, new Transaction.Mutator() {
                             public void mutate(Transaction transaction) {
@@ -317,6 +331,9 @@ public class ChainMain {
                         rehashChainFromIndex(chain, index, problemDifficulty);
                         break;
                     case "BAD_POW":
+                        /* Change the nonce on the block but don't remine it. This
+                         * problem should be caught by the fact that the hash
+                         * does not satisfy the problem difficulty. */
                         msg.append("adding a block with a bad proof of work function");
                         block.nonce = 0;
                         try {
@@ -326,7 +343,7 @@ public class ChainMain {
                             Platform.exit();
                         }
 
-                        /* We rehash from this index onwards - we wanted to rehash
+                        /* We rehash from this index + 1 onwards - we wanted to rehash
                          * the current block without necessarily re-mining it
                          * which is what we did above. */
                         rehashChainFromIndex(chain, index + 1, problemDifficulty);
