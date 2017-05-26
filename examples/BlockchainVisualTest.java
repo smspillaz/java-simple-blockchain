@@ -1,12 +1,20 @@
-import javax.xml.bind.DatatypeConverter;
-import java.security.NoSuchAlgorithmException;
-
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.Security;
+import java.security.InvalidKeyException;
+import java.security.NoSuchProviderException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class BlockchainVisualTest {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvalidKeyException,
+                                                  NoSuchProviderException,
+                                                  NoSuchAlgorithmException,
+                                                  SignatureException {
+        BlockMiner miner = null;
+
         try {
             Security.addProvider(new BouncyCastleProvider());
             KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "BC");
@@ -14,16 +22,22 @@ public class BlockchainVisualTest {
 
             KeyPair genesisKeys = generator.generateKeyPair();
 
-            Blockchain chain = new Blockchain(
-                new Transaction(genesisKeys.getPublic(),
-                                genesisKeys.getPublic(),
-                                50,
-                                genesisKeys.getPrivate()).serialize()
+            Blockchain chain = new Blockchain(1);
+            miner = new BlockMiner(chain, 1);
+            miner.waitFor(
+                miner.appendPayload(new SignedObject(
+                    new Transaction(genesisKeys.getPublic().getEncoded(),
+                                    genesisKeys.getPublic().getEncoded(),
+                                    50).serialize(),
+                    genesisKeys.getPrivate()
+                ).serialize())
             );
+            System.out.println(chain.serialise());
 
-        } catch (NoSuchAlgorithmException exception) {
-            System.err.println("Java installation does not support SHA-256, cannot continue");
-            System.exit(1);
+        } finally {
+            if (miner != null) {
+                miner.shutdown();
+            }
         }
     }
 }
