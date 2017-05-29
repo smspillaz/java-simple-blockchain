@@ -108,9 +108,9 @@ def main(args):
 
     print("-----\n")
     print("All done. You can now run the server with something like\n"
-          "KEYSTORE_PASSWORD=your-password java ChainMain path/to/server.jks\n"
+          "KEYSTORE_PASSWORD=your-password java ChainMain -keystore path/to/server.jks\n"
           "and the client with\n"
-          "KEYSTORE_PASSWORD=your-password java WalletMain HOST "
+          "KEYSTORE_PASSWORD=your-password java WalletCLI -hostname HOST -keystore path/to/client.jks\n"
           "path/to/client.jks\n"
           "\n"
           "If you need to interact with the server using curl, you can\n"
