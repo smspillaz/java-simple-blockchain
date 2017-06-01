@@ -4,6 +4,12 @@
 Install Gradle from https://gradle.org/install . To generate an IntelliJ compatible project
 file you can just use `gradle idea`
 
+If you are running on Java 6, you will need to run an older version of Gradle
+(2.14). You can obtain that from https://services.gradle.org/distributions/gradle-2.14.1-bin.zip.
+
+Unzip the distribution and run the provided gradle binary in order to build
+the project. You can just use ./path/to/gradle build to build the project.
+
 # Building and Testing
 
 The project itself can be built either using your favourite IDE after having exported the relevant project files from Gradle, or from Gradle itself. `gradle build` will get you to where you need to be pretty quickly. It will also run `FindBugs` and `PMD` on each run.
