@@ -320,8 +320,7 @@ public class ChainMain {
                 StringBuilder msg = new StringBuilder();
                 msg.append("Maliciously modifying block " + block.toString() + " by: ");
                 if (index == indexToModify) {
-                    switch (op) {
-                    case "MODIFY_TX":
+                    if (op.equals("MODIFY_TX")) {
                         /* Modify a transaction in flight, for instance, by subtracting
                          * one from the amount. This should be caught by the fact that
                          * the block doesn't hash correctly anymore. */
@@ -335,8 +334,7 @@ public class ChainMain {
                                 });
                             }
                         });
-                        break;
-                    case "INVALID_TX":
+                    } else if (op.equals("INVALID_TX")) {
                         /* Make a transaction negative and remine it. This
                          * problem should be caught by the fact that transaction
                          * is nonsensical */
@@ -351,8 +349,7 @@ public class ChainMain {
                             }
                         });
                         rehashChainFromIndex(chain, index, problemDifficulty);
-                        break;
-                    case "BAD_SIGNATURE":
+                    } else if (op.equals("BAD_SIGNATURE")) {
                         /* Subtract one from the transaction and remine it. This
                          * problem should be caught by the fact that the signature
                          * on the transaction is no longer valid */
@@ -367,8 +364,7 @@ public class ChainMain {
                             }
                         });
                         rehashChainFromIndex(chain, index, problemDifficulty);
-                        break;
-                    case "BAD_POW":
+                    } else if (op.equals("BAD_POW")) {
                         /* Change the nonce on the block but don't remine it. This
                          * problem should be caught by the fact that the hash
                          * does not satisfy the problem difficulty. */
@@ -384,10 +380,8 @@ public class ChainMain {
                          * the current block without necessarily re-mining it
                          * which is what we did above. */
                         rehashChainFromIndex(chain, index + 1, problemDifficulty);
-                        break;
-                    default:
+                    } else {
                         msg.append("... doing nothing. Is this a correct modify op?");
-                        break;
                     }
                 }
 
