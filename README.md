@@ -25,7 +25,8 @@ Instead, you will need to use the provided `genkeys.py` script. This will genera
 To generate keys, you can use something like.
 
 Note that if you want to run on a server that doesn't have a publicly accessible
-hostname, you'll need to provide the IP address in the HOSTNAME field.
+hostname, you'll need to provide the IP address in the HOSTNAME field. Sadly, however, the `keytool` utility
+on Java 6 does not support specifying an IP address on its own. You will need to use `keytool` from a machine that has Java 8.
 
 > python genkeys.py KEYSTORE_PASSWORD HOSTNAME
 
