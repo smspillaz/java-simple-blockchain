@@ -128,7 +128,7 @@ public class BlockchainTest extends TestBase {
                                                                  Block.MiningException,
                                                                  InvalidKeyException,
                                                                  SignatureException {
-    Blockchain chain = new Blockchain(problemDifficulty);
+    final Blockchain chain = new Blockchain(problemDifficulty);
     BlockMiner miner = registerForCleanup(new BlockMiner(chain, problemDifficulty));
     miner.waitFor(
       miner.appendPayload(convenienceTransactionPayloadFromIntegerKeys(senderKeys.getPublic(),

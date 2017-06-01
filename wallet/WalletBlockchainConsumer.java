@@ -35,7 +35,7 @@ public class WalletBlockchainConsumer {
     }
 
     public TransactionHistory transactionHistory(String walletID) throws Blockchain.WalkFailedException {
-        TransactionHistoryObserver observer = new TransactionHistoryObserver(walletID);
+        final TransactionHistoryObserver observer = new TransactionHistoryObserver(walletID);
 
         new Ledger(chain, new LinkedList<Ledger.TransactionObserver>() {{
             add(observer);
