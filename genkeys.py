@@ -53,14 +53,33 @@ def main(args):
             raise error
 
     print("Generating server key-pairs into ./keys/server.jks")
+    java_version = int(subprocess.Popen(['java', '-version'],
+                                        stderr=subprocess.PIPE)
+                                 .communicate()[1]
+                                 .splitlines()[0]
+                                 .split(" ")[2][3])
+    ext_args = [
+        "-ext",
+        "san=dns:{},ip:{}".format(args.host, get_ip_address())
+    ] if java_version >= 8 else []
+
+    if java_version < 8:
+        print("/!\ It looks like you have an old Java version {} "
+              "that does not support specifying SSL header extensions "
+              "such as the client IP address. Unfortunately, I won't "
+              "be able to generate certificates with the IP address as "
+              "the name owner and thus multi-machine networking "
+              "won't work as expected (but you can still run on "
+              "localhost. Consider installing Java 8 to get around this. "
+              "Sorry.")
+
     subprocess.check_call([
         "keytool",
         "-genkeypair",
         "-dname",
         "CN={}, OU=CSSE, O=University of Western Australia, "
-        "L=Perth, S=Western Australia, C=AU".format(args.host),
-        "-ext",
-        "san=dns:{},ip:{}".format(args.host, get_ip_address()),
+        "L=Perth, S=Western Australia, C=AU".format(args.host)
+    ] + ext_args + [
         "-keystore",
         os.path.join("keys", "server.jks"),
         "-keyalg",
