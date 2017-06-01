@@ -177,8 +177,8 @@ public class Ledger {
      * address, optionally calling out to a TransactionObserver for each
      * transaction */
     private static Map<String, Long> walkTransactions(Blockchain chain,
-                                                      List<TransactionObserver> observers) throws Blockchain.WalkFailedException {
-        Map<String, Long> ownership = new HashMap<String, Long>();
+                                                      final List<TransactionObserver> observers) throws Blockchain.WalkFailedException {
+        final Map<String, Long> ownership = new HashMap<String, Long>();
 
         chain.walk(new Blockchain.BlockEnumerator() {
             public void consume(int index, Block block) throws Blockchain.WalkFailedException {

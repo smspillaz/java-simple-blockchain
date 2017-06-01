@@ -275,9 +275,9 @@ public class ChainMain {
         }
     }
 
-    public static void rehashChainFromIndex(Blockchain chain,
-                                            int rehashFrom,
-                                            long problemDifficulty) {
+    public static void rehashChainFromIndex(final Blockchain chain,
+                                            final int rehashFrom,
+                                            final long problemDifficulty) {
         try {
             chain.walk(new Blockchain.BlockEnumerator() {
                 public void consume(int index, Block block) throws Blockchain.WalkFailedException {
@@ -309,12 +309,12 @@ public class ChainMain {
      * their signature is necessarily destroyed. However, the signature is
      * always checked last in the validation process, which means that
      * we can detect other problems beforehand */
-    public static void performChainCorruption(Blockchain chain,
-                                              Ledger ledger,
-                                              String op,
-                                              long problemDifficulty) throws Blockchain.WalkFailedException,
-                                                                             Block.MiningException {
-        int indexToModify = ((int) Math.ceil(Math.random())) % chain.length();
+    public static void performChainCorruption(final Blockchain chain,
+                                              final Ledger ledger,
+                                              final String op,
+                                              final long problemDifficulty) throws Blockchain.WalkFailedException,
+                                                                                   Block.MiningException {
+        final int indexToModify = ((int) Math.ceil(Math.random())) % chain.length();
         chain.walk(new Blockchain.BlockEnumerator() {
             public void consume(int index, Block block) {
                 StringBuilder msg = new StringBuilder();
@@ -428,7 +428,7 @@ public class ChainMain {
         Arguments arguments = new Arguments(args);
         Security.addProvider(new BouncyCastleProvider());
 
-        HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
+        final HttpsServer server = HttpsServer.create(new InetSocketAddress(3002), 0);
         SSLContext context = ChainMain.createSSLContextForKeyFileStream(new FileInputStream(arguments.keystore),
                                                                         System.getenv("KEYSTORE_PASSWORD")
                                                                               .toCharArray());
@@ -459,8 +459,8 @@ public class ChainMain {
                                                               arguments.genesisBlockAmount,
                                                               arguments.signGensisBlockWith,
                                                               arguments.problemDifficulty);
-        Blockchain chain = lc.chain;
-        AsynchronouslyMutableLedger ledger = lc.ledger;
+        final Blockchain chain = lc.chain;
+        final AsynchronouslyMutableLedger ledger = lc.ledger;
         BlockMiner miner = lc.miner;
         int postedTransactionId = lc.postedTransactionId;
 
