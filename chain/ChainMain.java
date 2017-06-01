@@ -391,17 +391,17 @@ public class ChainMain {
     }
 
     public static byte[] readAllBytes(InputStream stream) throws IOException {
-        try (ByteArrayOutputStream ba = new ByteArrayOutputStream();) {
-            byte[] buffer = new byte[0xFFFF];
-            int read = 0;
+        ByteArrayOutputStream ba = new ByteArrayOutputStream();
+        byte[] buffer = new byte[0xFFFF];
+        int read = 0;
 
-            while ((read = stream.read(buffer, 0, buffer.length)) != -1) {
-                ba.write(buffer, 0, read);
-            }
-
-            ba.flush();
-            return ba.toByteArray();
+        while ((read = stream.read(buffer, 0, buffer.length)) != -1) {
+            ba.write(buffer, 0, read);
         }
+
+        ba.flush();
+        ba.close();
+        return ba.toByteArray();
     }
 
     public static void main(String[] args) throws IOException,
