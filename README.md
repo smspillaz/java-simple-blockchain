@@ -14,6 +14,9 @@ the project. You can just use ./path/to/gradle build to build the project.
 
 The project itself can be built either using your favourite IDE after having exported the relevant project files from Gradle, or from Gradle itself. `gradle build` will get you to where you need to be pretty quickly. It will also run `FindBugs` and `PMD` on each run.
 
+On Java 6, you won't be able to run `FindBugs` or `PMD`. Use `gradle compileJava` and `gradle test` to run
+the unit tests.
+
 # Generating SSL keys
 SSL keys are not checked into the repository, since the server certificate needs to encode its hostname and the hostname is not stable.
 
