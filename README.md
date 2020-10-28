@@ -1,4 +1,4 @@
-# CITS3002
+# Simple Blockchain Implementaiton
 
 # Installation
 Install Gradle from https://gradle.org/install . To generate an IntelliJ compatible project
